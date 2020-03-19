@@ -41,7 +41,7 @@ function(input, output, session) {
               tags$p("The forecasting model is the ETS (Exponential smoothing) implemented in a smooth R package,
                       so only historical data of target time series are used.
                       For total cumulative confirmed cases, the fully multiplicative model is used.
-                      For total cumulative death cases, the fully additive/multiplicative model is used."),
+                      For total cumulative death cases of the World, also the fully multiplicative model is used."),
               tags$p("The forecasting model applied on the Covid-19 use case was inspired by",
                      tags$a(href = 'https://twitter.com/fotpetr',
                             target="_blank", "Fotios Petropoulos tweets.")),
@@ -138,6 +138,14 @@ function(input, output, session) {
     
   })
   
+  # informative text for cases -----
+  output$cases_text <- renderUI({
+    
+    tags$html(tags$p("Cases = New confirmed cases at that day."),
+              tags$p("Cases cumulative = Total accumulated confirmed cases at that day.")
+              )
+    
+  })
   
   # Show cases of the selected country ----
   output$dygraph_country_cases <- renderDygraph({
@@ -156,6 +164,15 @@ function(input, output, session) {
                 colors = c("#5bc0de", "#228b22")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyLegend(width = 400, show = "always")
+    
+  })
+  
+  # informative text for deaths -----
+  output$death_text <- renderUI({
+    
+    tags$html(tags$p("Deaths = New confirmed death cases at that day."),
+              tags$p("Deaths cumulative = Total accumulated confirmed deaths at that day.")
+              )
     
   })
   
@@ -208,6 +225,15 @@ function(input, output, session) {
     
   })
   
+  # informative text for forecasted cases -----
+  output$cases_forec_text <- renderUI({
+    
+    tags$html(
+              tags$p("Cases cumulative = Total accumulated confirmed cases at that day.")
+              )
+    
+  })
+  
   # Show forecasted cases of the selected country ----
   output$dygraph_country_cases_forecast <- renderDygraph({
     
@@ -240,62 +266,62 @@ function(input, output, session) {
   })
   
   # Forecasting Deaths cumulative -----
-  data_deaths_cumsum_forec <- reactive({
-    
-    req(input$country, input$n_days_forec)
-    
-    data_res <- copy(data_country())
-    
-    data_forec <- forec_deaths_cumsum(data_res, input$n_days_forec)
-    
-    data_res <- rbindlist(list(
-      data_res,
-      data.table(DateRep = seq.Date(data_res[, max(DateRep) + 1],
-                                    data_res[, max(DateRep) + input$n_days_forec],
-                                    by = 1),
-                 Deaths_cumsum_mean = round(data_forec$forecast, digits = 0),
-                 Deaths_cumsum_lwr = floor(data_forec$forecast),
-                 Deaths_cumsum_upr = data_forec$upper
-      )
-    ), fill = TRUE, use.names = TRUE
-    )
-    
-    data_res[, Model := data_forec$model]
-    
-    data_res
-    
-  })
-  
-  # Show forecasted deaths of the selected country ----
-  output$dygraph_country_deaths_forecast <- renderDygraph({
-    
-    shiny::req(input$country, input$n_days_forec)
-    
-    data_res <- copy(data_deaths_cumsum_forec())
-    
-    dygraph(data_res[, .(DateRep, 'Deaths cumulative' = Deaths_cumsum,
-                         Deaths_cumsum_mean, Deaths_cumsum_lwr, Deaths_cumsum_upr)],
-            main = paste0(input$country,
-                          ", model: ",
-                          data_res[, unique(Model)])) %>%
-      # dyAxis("y", label = "Deaths - cumulative") %>%
-      dySeries('Deaths cumulative') %>%
-      dySeries(c("Deaths_cumsum_lwr", "Deaths_cumsum_mean", "Deaths_cumsum_upr"),
-               label = "Deaths cumulative - forecast") %>%
-      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - input$n_days_forec - 7],
-                                     data_res[, max(DateRep) + 1]),
-                      fillColor = "#5bc0de", strokeColor = "#222d32") %>%
-      dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
-                fillGraph = TRUE, fillAlpha = 0.4,
-                drawPoints = TRUE, pointSize = 3,
-                pointShape = "circle",
-                colors = c("#5bc0de", "#228b22")) %>%
-      dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
-      dyEvent(data_res[is.na(Deaths_cumsum_mean), max(DateRep)],
-              "Forecasting origin", labelLoc = "bottom") %>%
-      dyLegend(width = 400, show = "always")
-    
-  })
+  # data_deaths_cumsum_forec <- reactive({
+  #   
+  #   req(input$country, input$n_days_forec)
+  #   
+  #   data_res <- copy(data_country())
+  #   
+  #   data_forec <- forec_deaths_cumsum(data_res, input$n_days_forec)
+  #   
+  #   data_res <- rbindlist(list(
+  #     data_res,
+  #     data.table(DateRep = seq.Date(data_res[, max(DateRep) + 1],
+  #                                   data_res[, max(DateRep) + input$n_days_forec],
+  #                                   by = 1),
+  #                Deaths_cumsum_mean = round(data_forec$forecast, digits = 0),
+  #                Deaths_cumsum_lwr = floor(data_forec$forecast),
+  #                Deaths_cumsum_upr = data_forec$upper
+  #     )
+  #   ), fill = TRUE, use.names = TRUE
+  #   )
+  #   
+  #   data_res[, Model := data_forec$model]
+  #   
+  #   data_res
+  #   
+  # })
+  # 
+  # # Show forecasted deaths of the selected country ----
+  # output$dygraph_country_deaths_forecast <- renderDygraph({
+  #   
+  #   shiny::req(input$country, input$n_days_forec)
+  #   
+  #   data_res <- copy(data_deaths_cumsum_forec())
+  #   
+  #   dygraph(data_res[, .(DateRep, 'Deaths cumulative' = Deaths_cumsum,
+  #                        Deaths_cumsum_mean, Deaths_cumsum_lwr, Deaths_cumsum_upr)],
+  #           main = paste0(input$country,
+  #                         ", model: ",
+  #                         data_res[, unique(Model)])) %>%
+  #     # dyAxis("y", label = "Deaths - cumulative") %>%
+  #     dySeries('Deaths cumulative') %>%
+  #     dySeries(c("Deaths_cumsum_lwr", "Deaths_cumsum_mean", "Deaths_cumsum_upr"),
+  #              label = "Deaths cumulative - forecast") %>%
+  #     dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - input$n_days_forec - 7],
+  #                                    data_res[, max(DateRep) + 1]),
+  #                     fillColor = "#5bc0de", strokeColor = "#222d32") %>%
+  #     dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
+  #               fillGraph = TRUE, fillAlpha = 0.4,
+  #               drawPoints = TRUE, pointSize = 3,
+  #               pointShape = "circle",
+  #               colors = c("#5bc0de", "#228b22")) %>%
+  #     dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
+  #     dyEvent(data_res[is.na(Deaths_cumsum_mean), max(DateRep)],
+  #             "Forecasting origin", labelLoc = "bottom") %>%
+  #     dyLegend(width = 400, show = "always")
+  #   
+  # })
   
   #### World aggregated -----------
   
@@ -342,6 +368,15 @@ function(input, output, session) {
     
   })
 
+  # informative text for cases -world -----
+  output$cases_text_world <- renderUI({
+    
+    tags$html(tags$p("Cases = New confirmed cases at that day."),
+              tags$p("Cases cumulative = Total accumulated confirmed cases at that day.")
+    )
+    
+  })
+  
   # Show cases of the world ----
   output$dygraph_world_cases <- renderDygraph({
     
@@ -357,6 +392,15 @@ function(input, output, session) {
                 colors = c("#5bc0de", "#228b22")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyLegend(width = 400, show = "always")
+    
+  })
+  
+  # informative text for deaths - world -----
+  output$death_text_world <- renderUI({
+    
+    tags$html(tags$p("Deaths = New confirmed death cases at that day."),
+              tags$p("Deaths cumulative = Total accumulated confirmed deaths at that day.")
+    )
     
   })
   

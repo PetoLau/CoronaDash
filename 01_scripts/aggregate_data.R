@@ -1,4 +1,4 @@
-# Aggregate data ----
+# Aggregate data - "whole" world ----
 
 aggregate_data <- function(data) {
   
