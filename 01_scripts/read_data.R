@@ -4,7 +4,7 @@
 read_data <- function() {
   
   # read xls data
-  data_res <- as.data.table(read_xls("02_data/COVID-19-geographic-disbtribution-worldwide-2020-03-18.xls"))
+  data_res <- as.data.table(read_xlsx("02_data/COVID-19-geographic-disbtribution-worldwide-2020-03-19.xlsx"))
   # str(data_res)
   
   setnames(data_res, "Countries and territories", "Country")
