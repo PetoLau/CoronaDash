@@ -30,13 +30,7 @@ function(input, output, session) {
       )
   })
   
-  # # text for accounts
-  # output$text_accounts <- renderUI({
-  #   HTML(paste("Links for my twitter, linkedin and github accounts.",
-  #              sep=""))
-  # })
-  
-  # informative text of this app -----
+  # informative text for this app -----
   output$informative_text <- renderUI({
     
     tags$html(tags$p("This application is only for informative purposes,
@@ -354,7 +348,7 @@ function(input, output, session) {
     dygraph(data_world()[, .(DateRep, 'Cases cumulative' = Cases_cumsum, Cases)],
             main = "World") %>%
       # dyAxis("y", label = "Cases") %>%
-      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 20], data_country()[, max(DateRep) + 1]),
+      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 60], data_country()[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
                 fillGraph = TRUE, fillAlpha = 0.4,
@@ -372,7 +366,7 @@ function(input, output, session) {
     dygraph(data_world()[, .(DateRep, 'Deaths cumulative' = Deaths_cumsum, Deaths)],
             main = "World") %>%
       # dyAxis("y", label = "Deaths") %>%
-      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 20], data_country()[, max(DateRep) + 1]),
+      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 60], data_country()[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
                 fillGraph = TRUE, fillAlpha = 0.4,
