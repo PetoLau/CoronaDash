@@ -34,14 +34,17 @@ function(input, output, session) {
   output$informative_text <- renderUI({
     
     tags$html(tags$p("This application is only for informative purposes,
-                     how the COVID-19 virus can spread over time for a defined country and period of days (cases and deaths)."),
+                     how the COVID-19 virus can spread over time for a defined country and period of days (confirmed cases)."),
               tags$p("Data are coming from",
                      tags$a(href = 'https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide',
                             target="_blank", "European Centre for Disease Prevention and Control.")),
               tags$p("The forecasting model is the ETS (Exponential smoothing) implemented in a smooth R package,
                       so only historical data of target time series are used.
                       For total cumulative confirmed cases, the fully multiplicative model is used.
-                      For total cumulative death cases of the World, also the fully multiplicative model is used."),
+                      For total cumulative death cases of the World, also the fully multiplicative model is used
+                     (it is the possibility of using a damped trend in both situations)."),
+              tags$p(tags$a("You can check the aggregated World cases in the second tab.",
+                            onclick = "openTab('worldTab')", href="#")),
               tags$p("The forecasting model applied on the Covid-19 use case was inspired by",
                      tags$a(href = 'https://twitter.com/fotpetr',
                             target="_blank", "Fotios Petropoulos tweets.")),
@@ -59,6 +62,15 @@ function(input, output, session) {
     data_res <- read_data()
     
     data_res
+    
+  })
+  
+  # date of update -----
+  output$text_date_update <- renderUI({
+    
+    tags$html(tags$p(tags$b("Last data updated: "), data_corona()[, max(DateRep)]
+                     )
+              )
     
   })
   

@@ -24,6 +24,16 @@ body <- dashboardBody(
   
   tags$head(tags$link(rel = "shortcut icon", href = "favicon_trans.png")),
 
+  tags$script(HTML("
+        var openTab = function(tabName){
+          $('a', $('.sidebar')).each(function() {
+            if(this.getAttribute('data-value') == tabName) {
+              this.click()
+            };
+          });
+        }
+      ")),
+  
   shinyEffects::setShadow(class = "box"),
   shinyEffects::setShadow(id = "my-progress"),
   
@@ -60,7 +70,8 @@ body <- dashboardBody(
                   solidHeader = F,
                   collapsible = TRUE, width = 4,
                   uiOutput("selector_country") %>% withSpinner(color = "#5bc0de"),
-                  uiOutput("slider_n_days_forec") %>% withSpinner(color = "#5bc0de")
+                  uiOutput("slider_n_days_forec") %>% withSpinner(color = "#5bc0de"),
+                  htmlOutput("text_date_update")
               ),
               box(
                 title = span(icon("info-circle"), " Information about this app and forecasting COVID-19"),
@@ -106,7 +117,7 @@ body <- dashboardBody(
                   htmlOutput("cases_text"),
                   dygraphOutput("dygraph_country_cases") %>% withSpinner(color = "#5bc0de")
               ),
-              box(title = span(icon("chart-line"), " Forecasted cumulative cases for the selected country +
+              box(title = span(icon("chart-line"), " Forecasted total cumulative cases for the selected country +
                                90% upper prediction interval"),
                   solidHeader = F,
                   collapsible = TRUE, width = 6,
@@ -146,7 +157,7 @@ body <- dashboardBody(
                   htmlOutput("cases_text_world"),
                   dygraphOutput("dygraph_world_cases") %>% withSpinner(color = "#5bc0de")
               ),
-              box(title = span(icon("chart-line"), " Forecasted cumulative cases for the World +
+              box(title = span(icon("chart-line"), " Forecasted total cumulative cases for the World +
                                90% upper prediction interval"),
                   solidHeader = F,
                   collapsible = TRUE, width = 6,
@@ -160,7 +171,7 @@ body <- dashboardBody(
                   htmlOutput("death_text_world"),
                   dygraphOutput("dygraph_world_deaths") %>% withSpinner(color = "#5bc0de")
               ),
-              box(title = span(icon("chart-line"), " Forecasted cumulative deaths for the World +
+              box(title = span(icon("chart-line"), " Forecasted total cumulative deaths for the World +
                                90% upper prediction interval"),
                   solidHeader = F,
                   collapsible = TRUE, width = 6,
