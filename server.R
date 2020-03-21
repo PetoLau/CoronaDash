@@ -121,7 +121,7 @@ function(input, output, session) {
   output$valuebox_total_cases <- renderValueBox({
     
     valueBox(
-      data_country()[.N, Cases_cumsum],
+      format(data_country()[.N, Cases_cumsum], nsmall=1, big.mark=","),
       "Total confirmed cases",
       icon = icon("ambulance"),
       color = "orange"
@@ -132,7 +132,7 @@ function(input, output, session) {
   output$valuebox_total_deaths <- renderValueBox({
     
     valueBox(
-      data_country()[.N, Deaths_cumsum],
+      format(data_country()[.N, Deaths_cumsum], nsmall=1, big.mark=","),
       "Total confirmed deaths",
       icon = icon("skull"),
       color = "red"
@@ -154,7 +154,7 @@ function(input, output, session) {
   output$valuebox_total_recov <- renderValueBox({
     
     valueBox(
-      data_country()[.N, Recovered_cumsum],
+      format(data_country()[.N, Recovered_cumsum], nsmall=1, big.mark=","),
       "Total confirmed recovered cases",
       icon = icon("star-of-life"),
       color = "green"
@@ -165,7 +165,7 @@ function(input, output, session) {
   output$valuebox_total_active <- renderValueBox({
     
     valueBox(
-      data_country()[.N, Active_cases_cumsum],
+      format(data_country()[.N, Active_cases_cumsum], nsmall=1, big.mark=","),
       "Total confirmed active cases",
       icon = icon("hospital-alt"),
       color = "yellow"
@@ -374,7 +374,7 @@ function(input, output, session) {
   output$valuebox_total_cases_world <- renderValueBox({
     
     valueBox(
-      data_world()[.N, Cases_cumsum],
+      format(data_world()[.N, Cases_cumsum], nsmall=1, big.mark=","),
       "Total confirmed cases",
       icon = icon("ambulance"),
       color = "orange"
@@ -385,7 +385,7 @@ function(input, output, session) {
   output$valuebox_total_deaths_world <- renderValueBox({
     
     valueBox(
-      data_world()[.N, Deaths_cumsum],
+      format(data_world()[.N, Deaths_cumsum], nsmall=1, big.mark=","),
       "Total confirmed deaths",
       icon = icon("skull"),
       color = "red"
@@ -407,7 +407,7 @@ function(input, output, session) {
   output$valuebox_total_recov_world <- renderValueBox({
     
     valueBox(
-      data_world()[.N, Recovered_cumsum],
+      format(data_world()[.N, Recovered_cumsum], nsmall=1, big.mark=","),
       "Total confirmed recovered cases",
       icon = icon("star-of-life"),
       color = "green"
@@ -418,7 +418,7 @@ function(input, output, session) {
   output$valuebox_total_active_world <- renderValueBox({
     
     valueBox(
-      data_world()[.N, Active_cases_cumsum],
+      format(data_world()[.N, Active_cases_cumsum], nsmall=1, big.mark=","),
       "Total confirmed active cases",
       icon = icon("hospital-alt"),
       color = "yellow"
