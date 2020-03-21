@@ -4,7 +4,8 @@ function(input, output, session) {
   # Load scripts/modules -----
   
   # reading data
-  source("01_scripts/read_data.R")
+  # source("01_scripts/read_data.R")
+  source("01_scripts/read_data_cssegis.R")
   source("01_scripts/aggregate_data.R")
   
   # forecasting
@@ -36,8 +37,8 @@ function(input, output, session) {
     tags$html(tags$p("This application is only for informative purposes,
                      how the COVID-19 virus can spread over time for a defined country and period of days (confirmed cases)."),
               tags$p("Data are coming from",
-                     tags$a(href = 'https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide',
-                            target="_blank", "European Centre for Disease Prevention and Control.")),
+                     tags$a(href = 'https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series',
+                            target="_blank", "Johns Hopkins CSSE GitHub repository.")),
               tags$p("The forecasting model is the ETS (Exponential smoothing) implemented in a smooth R package,
                       so only historical data of target time series are used.
                       For total cumulative confirmed cases, the fully multiplicative model is used.
@@ -59,7 +60,7 @@ function(input, output, session) {
   # read the data ----
   data_corona <- reactive({
     
-    data_res <- read_data()
+    data_res <- join_all_corona_data()
     
     data_res
     
@@ -81,7 +82,7 @@ function(input, output, session) {
       inputId = "country",
       label = "Pick a country:", 
       choices = data_corona()[, unique(Country)],
-      selected = "United_States_of_America",
+      selected = "Italy",
       options = list(
         `live-search` = TRUE,
          style = "btn-info",
@@ -146,6 +147,28 @@ function(input, output, session) {
       "Death rate",
       icon = icon("exclamation-triangle"),
       color = "maroon"
+    )
+    
+  })
+  
+  output$valuebox_total_recov <- renderValueBox({
+    
+    valueBox(
+      data_country()[.N, Recovered_cumsum],
+      "Total confirmed recovered cases",
+      icon = icon("star-of-life"),
+      color = "green"
+    )
+    
+  })
+  
+  output$valuebox_total_active <- renderValueBox({
+    
+    valueBox(
+      data_country()[.N, Active_cases_cumsum],
+      "Total confirmed active cases",
+      icon = icon("hospital-alt"),
+      color = "orange"
     )
     
   })
@@ -380,6 +403,28 @@ function(input, output, session) {
     
   })
 
+  output$valuebox_total_recov_world <- renderValueBox({
+    
+    valueBox(
+      data_world()[.N, Recovered_cumsum],
+      "Total confirmed recovered cases",
+      icon = icon("star-of-life"),
+      color = "green"
+    )
+    
+  })
+  
+  output$valuebox_total_active_world <- renderValueBox({
+    
+    valueBox(
+      data_world()[.N, Active_cases_cumsum],
+      "Total confirmed active cases",
+      icon = icon("hospital-alt"),
+      color = "orange"
+    )
+    
+  })
+  
   # informative text for cases -world -----
   output$cases_text_world <- renderUI({
     

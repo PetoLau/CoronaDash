@@ -107,7 +107,9 @@ body <- dashboardBody(
                   collapsible = TRUE, width = 12,
                   valueBoxOutput("valuebox_total_cases") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_total_deaths") %>% withSpinner(color = "#5bc0de"),
-                  valueBoxOutput("valuebox_death_rate") %>% withSpinner(color = "#5bc0de")
+                  valueBoxOutput("valuebox_death_rate") %>% withSpinner(color = "#5bc0de"),
+                  valueBoxOutput("valuebox_total_recov") %>% withSpinner(color = "#5bc0de"),
+                  valueBoxOutput("valuebox_total_active") %>% withSpinner(color = "#5bc0de")
                   )
               ),
             fluidRow(
@@ -147,7 +149,9 @@ body <- dashboardBody(
                   collapsible = TRUE, width = 12,
                   valueBoxOutput("valuebox_total_cases_world") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_total_deaths_world") %>% withSpinner(color = "#5bc0de"),
-                  valueBoxOutput("valuebox_death_rate_world") %>% withSpinner(color = "#5bc0de")
+                  valueBoxOutput("valuebox_death_rate_world") %>% withSpinner(color = "#5bc0de"),
+                  valueBoxOutput("valuebox_total_active_world") %>% withSpinner(color = "#5bc0de"),
+                  valueBoxOutput("valuebox_total_recov_world") %>% withSpinner(color = "#5bc0de")
               )
             ),
             fluidRow(
