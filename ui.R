@@ -108,8 +108,8 @@ body <- dashboardBody(
                   valueBoxOutput("valuebox_total_cases") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_total_deaths") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_death_rate") %>% withSpinner(color = "#5bc0de"),
-                  valueBoxOutput("valuebox_total_recov") %>% withSpinner(color = "#5bc0de"),
-                  valueBoxOutput("valuebox_total_active") %>% withSpinner(color = "#5bc0de")
+                  valueBoxOutput("valuebox_total_active") %>% withSpinner(color = "#5bc0de"),
+                  valueBoxOutput("valuebox_total_recov") %>% withSpinner(color = "#5bc0de")
                   )
               ),
             fluidRow(

@@ -124,7 +124,7 @@ function(input, output, session) {
       data_country()[.N, Cases_cumsum],
       "Total confirmed cases",
       icon = icon("ambulance"),
-      color = "yellow"
+      color = "orange"
     )
     
   })
@@ -168,7 +168,7 @@ function(input, output, session) {
       data_country()[.N, Active_cases_cumsum],
       "Total confirmed active cases",
       icon = icon("hospital-alt"),
-      color = "orange"
+      color = "yellow"
     )
     
   })
@@ -177,7 +177,8 @@ function(input, output, session) {
   output$cases_text <- renderUI({
     
     tags$html(tags$p("Cases = New confirmed cases at that day."),
-              tags$p("Cases cumulative = Total accumulated confirmed cases at that day.")
+              tags$p("Cases cumulative = Total accumulated confirmed cases at that day."),
+              tags$p("Recovered cumulative = Total accumulated recovered cases at that day.")
               )
     
   })
@@ -187,7 +188,7 @@ function(input, output, session) {
     
     shiny::req(input$country)
     
-    dygraph(data_country()[, .(DateRep, 'Cases cumulative' = Cases_cumsum, Cases)],
+    dygraph(data_country()[, .(DateRep, 'Cases cumulative' = Cases_cumsum, Cases, 'Recovered cumulative' = Recovered_cumsum)],
             main = input$country) %>%
       # dyAxis("y", label = "Cases") %>%
       dyRangeSelector(dateWindow = c(data_country()[, max(DateRep) - 10], data_country()[, max(DateRep) + 1]),
@@ -196,7 +197,7 @@ function(input, output, session) {
                 fillGraph = TRUE, fillAlpha = 0.4,
                 drawPoints = TRUE, pointSize = 3,
                 pointShape = "circle",
-                colors = c("#5bc0de", "#228b22")) %>%
+                colors = c("#5bc0de", "#FF6347", "#228b22")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyLegend(width = 400, show = "always")
     
@@ -376,7 +377,7 @@ function(input, output, session) {
       data_world()[.N, Cases_cumsum],
       "Total confirmed cases",
       icon = icon("ambulance"),
-      color = "yellow"
+      color = "orange"
     )
     
   })
@@ -420,7 +421,7 @@ function(input, output, session) {
       data_world()[.N, Active_cases_cumsum],
       "Total confirmed active cases",
       icon = icon("hospital-alt"),
-      color = "orange"
+      color = "yellow"
     )
     
   })
@@ -429,15 +430,16 @@ function(input, output, session) {
   output$cases_text_world <- renderUI({
     
     tags$html(tags$p("Cases = New confirmed cases at that day."),
-              tags$p("Cases cumulative = Total accumulated confirmed cases at that day.")
-    )
+              tags$p("Cases cumulative = Total accumulated confirmed cases at that day."),
+              tags$p("Recovered cumulative = Total accumulated recovered cases at that day.")
+              )
     
   })
   
   # Show cases of the world ----
   output$dygraph_world_cases <- renderDygraph({
     
-    dygraph(data_world()[, .(DateRep, 'Cases cumulative' = Cases_cumsum, Cases)],
+    dygraph(data_world()[, .(DateRep, 'Cases cumulative' = Cases_cumsum, Cases, 'Recovered cumulative' = Recovered_cumsum)],
             main = "World") %>%
       # dyAxis("y", label = "Cases") %>%
       dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 60], data_country()[, max(DateRep) + 1]),
@@ -446,7 +448,7 @@ function(input, output, session) {
                 fillGraph = TRUE, fillAlpha = 0.4,
                 drawPoints = TRUE, pointSize = 3,
                 pointShape = "circle",
-                colors = c("#5bc0de", "#228b22")) %>%
+                colors = c("#5bc0de", "#FF6347", "#228b22")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyLegend(width = 400, show = "always")
     
