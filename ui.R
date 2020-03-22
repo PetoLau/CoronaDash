@@ -10,7 +10,6 @@ header <- dashboardHeader(title = span(tagList(icon("diagnoses"), "CoronaDash"))
 
 sidebar <- dashboardSidebar(
   sidebarMenuOutput("Side_dash")
-  # collapsed = TRUE
   )
 
 css <- ".shiny-output-error { visibility: hidden; }
@@ -66,26 +65,20 @@ body <- dashboardBody(
     tabItem(tabName = "corTab",
             class = 'active',
             fluidRow(
-              box(title = span(icon("magic"), " Parameters of forecasting"),
+              column(width = 4,
+              box(title = span(icon("magic"), " Select your preferences - country and forecasting horizon"),
                   solidHeader = F,
-                  collapsible = TRUE, width = 4,
+                  collapsible = TRUE, width = NULL,
                   uiOutput("selector_country") %>% withSpinner(color = "#5bc0de"),
                   uiOutput("slider_n_days_forec") %>% withSpinner(color = "#5bc0de"),
                   htmlOutput("text_date_update")
-              ),
-              box(
-                title = span(icon("info-circle"), " Information about this app and forecasting COVID-19"),
-                status = NULL,
-                solidHeader = F,
-                collapsible = TRUE, width = 5,
-                htmlOutput("informative_text")
               ),
               box(
                 title = span(icon("share-alt"), " Connect with the author on:"),
                 status = NULL,
                 solidHeader = F,
                 footer = "Links for my twitter, linkedin and github accounts.",
-                collapsible = TRUE, width = 3,
+                collapsible = TRUE, width = NULL, collapsed = TRUE,
                 # htmlOutput("text_accounts"),
                 socialButton(
                   url = "https://twitter.com/petolauri",
@@ -99,6 +92,21 @@ body <- dashboardBody(
                   url = "https://github.com/PetoLau/CoronaDash",
                   type = "github"
                 )
+              )
+              ),
+              box(title = span(icon("table"), " Table of countries"),
+                  footer = "Table is sorted by total Active cases. New cases = cases in the past day (24h).",
+                  status = NULL,
+                  solidHeader = F,
+                  collapsible = TRUE, width = 4, collapsed = F,
+                  DTOutput("dt_countries_cases")
+                  ),
+              box(
+                title = span(icon("info-circle"), " Information about this app and forecasting COVID-19"),
+                status = "info",
+                solidHeader = T,
+                collapsible = FALSE, width = 4, collapsed = F,
+                htmlOutput("informative_text")
               )
             ),
             fluidRow(

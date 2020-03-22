@@ -105,6 +105,38 @@ function(input, output, session) {
     
   })
   
+  # DT of most infected countries ----
+  output$dt_countries_cases <- renderDataTable({
+    
+    data_res <- copy(data_corona())
+    
+    data_res_latest <- copy(data_res[,
+                                     .SD[DateRep == max(DateRep)],
+                                     by = .(Country)]
+                            )
+    
+    setorder(data_res_latest, -Active_cases_cumsum)
+    
+    DT::datatable(data_res_latest[, .(Country,
+                                      'Total Cases' = Cases_cumsum,
+                                      'Total Deaths' = Deaths_cumsum,
+                                      'Active Cases' = Active_cases_cumsum,
+                                      'New cases' = Cases
+                                      )],
+                  selection = "single",
+                  class = "compact",
+                  extensions = c('Buttons', 'Scroller'),
+                  options = list(
+                    pageLength = 10,
+                    dom = 'Bfrtip',
+                    deferRender = TRUE,
+                    scrollY = 270,
+                    scroller = TRUE,
+                    buttons = c('csv', 'excel'),
+                    scrollX = TRUE
+                  ))
+  })
+  
   # Subset data by a country ----
   data_country <- reactive({
     
@@ -422,7 +454,7 @@ function(input, output, session) {
       "Total confirmed active cases",
       icon = icon("hospital-alt"),
       color = "yellow"
-    )
+      )
     
   })
   
