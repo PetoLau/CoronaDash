@@ -95,7 +95,8 @@ body <- dashboardBody(
               )
               ),
               box(title = span(icon("table"), " Table of countries"),
-                  footer = "Table is sorted by total Active cases. New cases = cases in the past day (24h).",
+                  footer = "Table is sorted by total Active cases. New cases = cases in the past day (24h).
+                  ActCases/MilPop = Active cases per 1 million population",
                   status = NULL,
                   solidHeader = F,
                   collapsible = TRUE, width = 4, collapsed = F,
@@ -117,7 +118,8 @@ body <- dashboardBody(
                   valueBoxOutput("valuebox_total_deaths") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_death_rate") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_total_active") %>% withSpinner(color = "#5bc0de"),
-                  valueBoxOutput("valuebox_total_recov") %>% withSpinner(color = "#5bc0de")
+                  valueBoxOutput("valuebox_total_recov") %>% withSpinner(color = "#5bc0de"),
+                  valueBoxOutput("valuebox_active_per_mil") %>% withSpinner(color = "#5bc0de")
                   )
               ),
             fluidRow(
@@ -159,7 +161,8 @@ body <- dashboardBody(
                   valueBoxOutput("valuebox_total_deaths_world") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_death_rate_world") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_total_active_world") %>% withSpinner(color = "#5bc0de"),
-                  valueBoxOutput("valuebox_total_recov_world") %>% withSpinner(color = "#5bc0de")
+                  valueBoxOutput("valuebox_total_recov_world") %>% withSpinner(color = "#5bc0de"),
+                  valueBoxOutput("valuebox_active_per_mil_world") %>% withSpinner(color = "#5bc0de")
               )
             ),
             fluidRow(

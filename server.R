@@ -7,6 +7,7 @@ function(input, output, session) {
   # source("01_scripts/read_data.R")
   source("01_scripts/read_data_cssegis.R")
   source("01_scripts/aggregate_data.R")
+  source("01_scripts/read_populations.R")
   
   # forecasting
   source("01_scripts/forecasting.R")
@@ -62,6 +63,12 @@ function(input, output, session) {
     
     data_res <- join_all_corona_data()
     
+    data_pop <- read_populations()
+
+    data_res[data_pop,
+             on = .(Country),
+             Population := i.Population]
+    
     data_res
     
   })
@@ -105,8 +112,8 @@ function(input, output, session) {
     
   })
   
-  # DT of most infected countries ----
-  output$dt_countries_cases <- renderDataTable({
+  # Latest stats ----
+  data_countries_stats <- reactive({
     
     data_res <- copy(data_corona())
     
@@ -117,11 +124,21 @@ function(input, output, session) {
     
     setorder(data_res_latest, -Active_cases_cumsum)
     
+    data_res_latest
+    
+  })
+  
+  # DT of most infected countries ----
+  output$dt_countries_cases <- renderDataTable({
+    
+    data_res_latest <- copy(data_countries_stats())
+    
     DT::datatable(data_res_latest[, .(Country,
                                       'Total Cases' = Cases_cumsum,
                                       'Total Deaths' = Deaths_cumsum,
                                       'Active Cases' = Active_cases_cumsum,
-                                      'New cases' = Cases
+                                      'New cases' = Cases,
+                                      'ActCases/ MilPop' = ceiling((Active_cases_cumsum / Population) * 1e6)
                                       )],
                   selection = "single",
                   class = "compact",
@@ -201,6 +218,18 @@ function(input, output, session) {
       "Total confirmed active cases",
       icon = icon("hospital-alt"),
       color = "yellow"
+    )
+    
+  })
+  
+  output$valuebox_active_per_mil <- renderValueBox({
+    
+    valueBox(
+      format(data_country()[.N,
+                            as.integer(ceiling((Active_cases_cumsum / Population) * 1e6))], nsmall=1, big.mark=","),
+      "Total confirmed active cases per 1 million population",
+      icon = icon("male"),
+      color = "purple"
     )
     
   })
@@ -455,6 +484,19 @@ function(input, output, session) {
       icon = icon("hospital-alt"),
       color = "yellow"
       )
+    
+  })
+  
+  output$valuebox_active_per_mil_world <- renderValueBox({
+    
+    valueBox(
+      format(data_world()[.N,
+                          as.integer(ceiling((Active_cases_cumsum / Population) * 1e6))],
+             nsmall=1, big.mark=","),
+      "Total confirmed active cases per 1 million population",
+      icon = icon("male"),
+      color = "purple"
+    )
     
   })
   

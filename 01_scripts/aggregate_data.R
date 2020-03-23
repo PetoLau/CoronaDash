@@ -11,7 +11,8 @@ aggregate_data <- function(data) {
                           Cases_cumsum = sum(Cases_cumsum, na.rm = T),
                           Deaths_cumsum = sum(Deaths_cumsum, na.rm = T),
                           Recovered_cumsum = sum(Recovered_cumsum, na.rm = T),
-                          Active_cases_cumsum = sum(Active_cases_cumsum, na.rm = T)
+                          Active_cases_cumsum = sum(Active_cases_cumsum, na.rm = T),
+                          Population = sum(Population, na.rm = T)
                           ),
                         by = .(DateRep)])
   
