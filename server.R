@@ -28,6 +28,12 @@ function(input, output, session) {
                tabName = "worldTab",
                startExpanded = F,
                selected = F
+               ),
+      menuItem("Compare countries",
+               icon = icon("balance-scale"),
+               tabName = "compareTab",
+               startExpanded = F,
+               selected = F
                )
       )
   })
@@ -659,6 +665,104 @@ function(input, output, session) {
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyEvent(data_res[is.na(Deaths_cumsum_mean), max(DateRep)],
               "Forecasting origin", labelLoc = "bottom") %>%
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
+    
+  })
+  
+  #### Comparison of countries ------
+  
+  output$checkboxgroup_countries_selector <- renderUI({
+    
+    shinyWidgets::checkboxGroupButtons(
+      inputId = "countries_selector",
+      label = "Pick countries for comparison:",
+      choices = data_corona()[, unique(Country)],
+      selected = c("Italy", "France", "Spain", "Germany", "United Kingdom"), 
+      checkIcon = list(
+        yes = tags$i(class = "fa fa-check-square", 
+                     style = "color: blue"),
+        no = tags$i(class = "fa fa-square-o", 
+                    style = "color: blue")
+      )
+    )
+    
+  })
+  
+  data_corona_all_new_stats <- reactive({
+    
+    data_res <- copy(data_corona())
+    
+    data_res[, ('Death rate (%)') := round((Deaths_cumsum / Cases_cumsum) * 100, 2)]
+    data_res[, ('Active cases per 1 million population') := ceiling((Active_cases_cumsum / Population) * 1e6)]
+    data_res[, ('Deaths per 1 million population') := ceiling((Deaths_cumsum / Population) * 1e6)]
+    data_res[, ('Total confirmed cases per 1 million population') := ceiling((Cases_cumsum / Population) * 1e6)]
+    
+    data_res[, Population := NULL]
+    
+    data_res
+    
+  })
+  
+  output$checkboxgroup_stats_selector <- renderUI({
+    
+    data_res <- copy(data_corona_all_new_stats())
+
+    shinyWidgets::checkboxGroupButtons(
+      inputId = "stats_selector",
+      label = "Pick statistic for comparison:",
+      choices = colnames(data_res)[-c(1:2)],
+      selected = 'Death rate (%)', 
+      checkIcon = list(
+        yes = tags$i(class = "fa fa-check-square", 
+                     style = "color: red"),
+        no = tags$i(class = "fa fa-square-o", 
+                    style = "color: red")
+      )
+    )
+    
+  })
+  
+  
+  data_country_stat_selected <- reactive({
+    
+    shiny::req(input$countries_selector, input$stats_selector)
+    
+    data_res <- copy(data_corona_all_new_stats())
+    
+    data_picked <- copy(data_res[.(input$countries_selector),
+                                 on = .(Country),
+                                 .SD,
+                                 .SDcols = c("Country",
+                                             "DateRep",
+                                             input$stats_selector)
+                                 ])
+    
+    data_picked
+    
+  })
+  
+  # Show stats for the selected countries ----
+  output$dygraph_countries_stats <- renderDygraph({
+    
+    shiny::req(input$countries_selector, input$stats_selector)
+    
+    data_res <- dcast(data_country_stat_selected(),
+                      DateRep ~ Country,
+                      value.var = input$stats_selector)
+    
+    dygraph(data_res,
+            main = paste(paste(input$stats_selector, collapse = ","),
+                         " in ",
+                         paste(input$countries_selector, collapse = ","),
+                         collapse = " ")) %>%
+      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 20], data_country()[, max(DateRep) + 1]),
+                      fillColor = "#5bc0de", strokeColor = "#222d32") %>%
+      dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
+                fillGraph = TRUE, fillAlpha = 0.4,
+                drawPoints = TRUE, pointSize = 3,
+                pointShape = "circle",
+                colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Set2")) %>%
+      dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })

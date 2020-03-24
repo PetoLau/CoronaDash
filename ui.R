@@ -27,6 +27,22 @@ body <- dashboardBody(
                            c('left', 'background-color'), 
                            c('70px !important', 'transparent !important')))),
   
+  tags$head(
+    tags$style(
+      HTML(
+        ".checkboxgroup-inline {
+                    margin-left: 0px;
+                    margin-right: 10px;
+          }
+         .checkboxgroup-inline+.checkboxgroup-inline {
+                    margin-left: 0px;
+                    margin-right: 10px;
+          }
+        "
+      )
+    )
+  ),
+  
   tags$script(HTML("
         var openTab = function(tabName){
           $('a', $('.sidebar')).each(function() {
@@ -197,7 +213,26 @@ body <- dashboardBody(
                   dygraphOutput("dygraph_world_deaths_forecast") %>% withSpinner(color = "#5bc0de")
               )
             )
-    )
+    ),
+    tabItem(tabName = "compareTab",
+            fluidRow(
+              box(title = span(icon("flag"), " Select multiple countries for comparison"),
+                  solidHeader = F,
+                  collapsible = TRUE, width = 12,
+                  uiOutput("checkboxgroup_countries_selector")
+                  ),
+              box(title = span(icon("table"), " Select statistic for comparison"),
+                  solidHeader = F,
+                  collapsible = TRUE, width = 12,
+                  uiOutput("checkboxgroup_stats_selector")
+                  ),
+              box(title = span(icon("chart-line"), " Comparison of countries"),
+                  solidHeader = F,
+                  collapsible = TRUE, width = 12,
+                  dygraphOutput("dygraph_countries_stats") %>% withSpinner(color = "#5bc0de")
+                  )
+              )
+            )
   )
   
 )
