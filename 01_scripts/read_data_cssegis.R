@@ -4,7 +4,7 @@
 read_data_cases <- function() {
   
   # data_confirmed <- fread("02_data/time_series_19-covid-Confirmed.csv")
-  data_confirmed <- fread("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
+  data_confirmed <- fread("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
   
   setnames(data_confirmed, colnames(data_confirmed)[2], "Country")
 
@@ -43,7 +43,7 @@ read_data_cases <- function() {
 read_data_deaths <- function() {
   
   # data_deaths <- fread("02_data/time_series_19-covid-Deaths.csv")
-  data_deaths <- fread("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv")
+  data_deaths <- fread("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
   
   setnames(data_deaths, colnames(data_deaths)[2], "Country")
   
@@ -91,14 +91,15 @@ read_data_recovered <- function() {
                               measure.vars = 5:length(colnames(data_recovered)),
                               variable.factor = FALSE,
                               variable.name = "DateRep",
-                              value.name = "Recovered_cumsum"
+                              value.name = "Recovered_cumsum",
+                              na.rm = TRUE
                               )
   
   data_recovered_melt[, DateRep := lubridate::mdy(DateRep)]
   
   data_recovered_melt_agg <- copy(data_recovered_melt[,
-                                                .(Recovered_cumsum = sum(Recovered_cumsum, na.rm = TRUE)),
-                                                by = .(Country, DateRep)])
+                                                      .(Recovered_cumsum = sum(Recovered_cumsum, na.rm = TRUE)),
+                                                      by = .(Country, DateRep)])
   
   # New Cases per day 
   setorder(data_recovered_melt_agg, Country, DateRep)
@@ -136,6 +137,10 @@ join_all_corona_data <- function() {
   
   # compute active cases cumsum
   data_all[, Active_cases_cumsum := Cases_cumsum - Deaths_cumsum - Recovered_cumsum]
+  
+  data_all[is.na(Recovered_cumsum), Recovered_cumsum := 0]
+  data_all[is.na(Recovered), Recovered := 0]
+  data_all[is.na(Active_cases_cumsum), Active_cases_cumsum := 0]
   
   # data_all[.("Slovakia"), on = .(Country)]
   # data_all[.("Italy"), on = .(Country)]
