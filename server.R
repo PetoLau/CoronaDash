@@ -260,7 +260,7 @@ function(input, output, session) {
                 pointShape = "circle",
                 colors = c("#5bc0de", "#FF6347", "#228b22")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
-      dyLegend(width = 400, show = "always")
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })
   
@@ -289,7 +289,7 @@ function(input, output, session) {
                 pointShape = "circle",
                 colors = c("#5bc0de", "#228b22")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
-      dyLegend(width = 400, show = "always")
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })
   
@@ -358,7 +358,7 @@ function(input, output, session) {
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyEvent(data_res[is.na(Cases_cumsum_mean), max(DateRep)],
               "Forecasting origin", labelLoc = "bottom") %>%
-      dyLegend(width = 400, show = "always")
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })
   
@@ -524,7 +524,7 @@ function(input, output, session) {
                 pointShape = "circle",
                 colors = c("#5bc0de", "#FF6347", "#228b22")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
-      dyLegend(width = 400, show = "always")
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })
   
@@ -551,7 +551,7 @@ function(input, output, session) {
                 pointShape = "circle",
                 colors = c("#5bc0de", "#228b22")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
-      dyLegend(width = 400, show = "always")
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })
   
@@ -605,7 +605,7 @@ function(input, output, session) {
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyEvent(data_res[is.na(Cases_cumsum_mean), max(DateRep)],
               "Forecasting origin", labelLoc = "bottom") %>%
-      dyLegend(width = 400, show = "always")
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })
   
@@ -659,7 +659,7 @@ function(input, output, session) {
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyEvent(data_res[is.na(Deaths_cumsum_mean), max(DateRep)],
               "Forecasting origin", labelLoc = "bottom") %>%
-      dyLegend(width = 400, show = "always")
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })
   

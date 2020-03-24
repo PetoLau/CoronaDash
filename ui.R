@@ -23,6 +23,10 @@ body <- dashboardBody(
   
   tags$head(tags$link(rel = "shortcut icon", href = "favicon_trans.png")),
 
+  tags$style(make_css(list('.dygraph-legend', 
+                           c('left', 'background-color'), 
+                           c('70px !important', 'transparent !important')))),
+  
   tags$script(HTML("
         var openTab = function(tabName){
           $('a', $('.sidebar')).each(function() {
