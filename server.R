@@ -43,7 +43,7 @@ function(input, output, session) {
     
     tags$html(tags$p("This application is only for informative purposes,
                      how the COVID-19 virus can spread over time for a defined country and period of days (confirmed cases).
-                     There isn't motivation to replace more sophisticated epidomology models like SIR."),
+                     There isn't motivation to replace more sophisticated epidemiology models like SIR."),
               tags$p("Data are coming from",
                      tags$a(href = 'https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series',
                             target="_blank", "Johns Hopkins CSSE GitHub repository."),
