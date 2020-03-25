@@ -42,17 +42,23 @@ function(input, output, session) {
   output$informative_text <- renderUI({
     
     tags$html(tags$p("This application is only for informative purposes,
-                     how the COVID-19 virus can spread over time for a defined country and period of days (confirmed cases)."),
+                     how the COVID-19 virus can spread over time for a defined country and period of days (confirmed cases).
+                     There isn't motivation to replace more sophisticated epidomology models like SIR."),
               tags$p("Data are coming from",
                      tags$a(href = 'https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series',
-                            target="_blank", "Johns Hopkins CSSE GitHub repository.")),
+                            target="_blank", "Johns Hopkins CSSE GitHub repository."),
+                     "and",
+                     tags$a(href = 'https://github.com/ulklc/covid19-timeseries',
+                            target="_blank", "GitHub repository by ulklc.")),
               tags$p("The forecasting model is the ETS (Exponential smoothing) implemented in a smooth R package,
-                      so only historical data of target time series are used.
+                      so only historical data of target time series are used (extrapolation).
                       For total cumulative confirmed cases, the fully multiplicative model is used.
                       For total cumulative death cases of the World, also the fully multiplicative model is used
                      (it is the possibility of using a damped trend in both situations)."),
               tags$p(tags$a("You can check the aggregated World cases in the second tab.",
-                            onclick = "openTab('worldTab')", href="#")),
+                            onclick = "openTab('worldTab')", href="#"),
+                     tags$a("You can also compare multiple countries for multiple statistics in the third tab.",
+                            onclick = "openTab('compareTab')", href="#")),
               tags$p("The forecasting model applied on the Covid-19 use case was inspired by",
                      tags$a(href = 'https://twitter.com/fotpetr',
                             target="_blank", "Fotios Petropoulos tweets.")),
@@ -693,8 +699,12 @@ function(input, output, session) {
     data_res <- copy(data_corona())
     
     data_res[, ('Death rate (%)') := round((Deaths_cumsum / Cases_cumsum) * 100, 2)]
-    data_res[, ('Active cases per 1 million population') := ceiling((Active_cases_cumsum / Population) * 1e6)]
-    data_res[, ('Deaths per 1 million population') := ceiling((Deaths_cumsum / Population) * 1e6)]
+    
+    data_res[, ('New confirmed cases per 1 million population') := ceiling((Cases / Population) * 1e6)]
+    data_res[, ('New confirmed deaths per 1 million population') := ceiling((Deaths / Population) * 1e6)]
+    
+    data_res[, ('Total active cases per 1 million population') := ceiling((Active_cases_cumsum / Population) * 1e6)]
+    data_res[, ('Total deaths per 1 million population') := ceiling((Deaths_cumsum / Population) * 1e6)]
     data_res[, ('Total confirmed cases per 1 million population') := ceiling((Cases_cumsum / Population) * 1e6)]
     
     data_res[, Population := NULL]
@@ -762,7 +772,9 @@ function(input, output, session) {
                 drawPoints = TRUE, pointSize = 3,
                 pointShape = "circle",
                 colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Set2")) %>%
-      dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
+      dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5,
+                                             pointSize = 4,
+                                             fillAlpha = 0.5)) %>%
       dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })

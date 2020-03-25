@@ -82,40 +82,67 @@ read_data_deaths <- function() {
 read_data_recovered <- function() {
   
   # data_recovered <- fread("02_data/time_series_19-covid-Recovered.csv")
-  data_recovered <- fread("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv")
+  # data_recovered <- fread("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv")
+  data_recovered <- fread("https://github.com/ulklc/covid19-timeseries/raw/master/countryReport/raw/rawReport.csv")
   
-  setnames(data_recovered, colnames(data_recovered)[2], "Country")
+  setnames(data_recovered, colnames(data_recovered)[3], "Country")
+  data_recovered[, (c("confirmed", "death", "region", "countryCode", "lat", "lon")) := NULL]
   
-  data_recovered_melt <- melt(data_recovered,
-                              id.vars = c(2),
-                              measure.vars = 5:length(colnames(data_recovered)),
-                              variable.factor = FALSE,
-                              variable.name = "DateRep",
-                              value.name = "Recovered_cumsum",
-                              na.rm = TRUE
-                              )
+  setnames(data_recovered, colnames(data_recovered)[c(1,3)], c("DateRep", "Recovered_cumsum"))
+  data_recovered[, DateRep := lubridate::ymd(DateRep)]
   
-  data_recovered_melt[, DateRep := lubridate::mdy(DateRep)]
+  data_recovered[.("United States"), on = .(Country), Country := "US"]
+  data_recovered[.("South Korea"), on = .(Country), Country := "Korea, South"]
+  data_recovered[.("Republic of the Congo"), on = .(Country), Country := "Congo (Brazzaville)"]
+  data_recovered[.("DR Congo"), on = .(Country), Country := "Congo (Kinshasa)"]
+  data_recovered[.("Taiwan"), on = .(Country), Country := "Taiwan*"]
+  data_recovered[.("Cape Verde"), on = .(Country), Country := "Cabo Verde"]
+  data_recovered[.("Vatican City"), on = .(Country), Country := "Holy See"]
+  data_recovered[.("Ivory Coast"), on = .(Country), Country := "Cote d'Ivoire"]
   
-  data_recovered_melt_agg <- copy(data_recovered_melt[,
-                                                      .(Recovered_cumsum = sum(Recovered_cumsum, na.rm = TRUE)),
-                                                      by = .(Country, DateRep)])
+  data_recovered[, unique(Country)]
   
-  # New Cases per day 
-  setorder(data_recovered_melt_agg, Country, DateRep)
-  data_recovered_melt_agg[, Recovered := c(.SD[1, Recovered_cumsum],
-                                     diff(Recovered_cumsum,
-                                          lag = 1,
-                                          differences = 1)
-                                     ),
-                          by = .(Country)]
+  # New Cases per day
+  setorder(data_recovered, Country, DateRep)
+  data_recovered[, Recovered := c(.SD[1, Recovered_cumsum],
+                                  diff(Recovered_cumsum,
+                                       lag = 1,
+                                       differences = 1)
+                                  ),
+                 by = .(Country)]
+
+  data_recovered[Recovered < 0, Recovered := 0]
   
-  data_recovered_melt_agg[Recovered < 0, Recovered := 0]
+  # data_recovered_melt <- melt(data_recovered,
+  #                             id.vars = c(2),
+  #                             measure.vars = 5:length(colnames(data_recovered)),
+  #                             variable.factor = FALSE,
+  #                             variable.name = "DateRep",
+  #                             value.name = "Recovered_cumsum",
+  #                             na.rm = TRUE
+  #                             )
+  # 
+  # data_recovered_melt[, DateRep := lubridate::mdy(DateRep)]
+  # 
+  # data_recovered_melt_agg <- copy(data_recovered_melt[,
+  #                                                     .(Recovered_cumsum = sum(Recovered_cumsum, na.rm = TRUE)),
+  #                                                     by = .(Country, DateRep)])
+  # 
+  # # New Cases per day 
+  # setorder(data_recovered_melt_agg, Country, DateRep)
+  # data_recovered_melt_agg[, Recovered := c(.SD[1, Recovered_cumsum],
+  #                                    diff(Recovered_cumsum,
+  #                                         lag = 1,
+  #                                         differences = 1)
+  #                                    ),
+  #                         by = .(Country)]
+  # 
+  # data_recovered_melt_agg[Recovered < 0, Recovered := 0]
   
   # data_recovered_melt_agg[.("Slovakia"), on = .(Country)]
   # data_recovered_melt_agg[.("Switzerland"), on = .(Country)]
   
-  return(data_recovered_melt_agg)
+  return(data_recovered)
   
 }
 
