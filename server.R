@@ -683,7 +683,7 @@ function(input, output, session) {
       inputId = "countries_selector",
       label = "Pick countries for comparison:",
       choices = data_corona()[, unique(Country)],
-      selected = c("Italy", "France", "Spain", "Germany", "United Kingdom"), 
+      selected = c("US", "Italy", "France", "Spain", "Germany", "United Kingdom"), 
       checkIcon = list(
         yes = tags$i(class = "fa fa-check-square", 
                      style = "color: blue"),
@@ -719,9 +719,9 @@ function(input, output, session) {
 
     shinyWidgets::checkboxGroupButtons(
       inputId = "stats_selector",
-      label = "Pick statistic for comparison:",
+      label = "Pick one statistic for comparison:",
       choices = colnames(data_res)[-c(1:2)],
-      selected = 'Death rate (%)', 
+      selected = 'Total active cases per 1 million population', 
       checkIcon = list(
         yes = tags$i(class = "fa fa-check-square", 
                      style = "color: red"),
@@ -730,6 +730,28 @@ function(input, output, session) {
       )
     )
     
+  })
+  
+  my_min <- 1
+  my_max <- 1
+
+  observe({
+
+    if (length(input$stats_selector) > my_max) {
+
+      shinyWidgets::updateCheckboxGroupButtons(session,
+                                               "stats_selector",
+                                               selected = tail(input$stats_selector, my_max))
+    }
+
+    # if (length(input$stats_selector) < my_min) {
+    #
+    #   shinyWidgets::updateCheckboxGroupButtons(session,
+    #                                            "stats_selector",
+    #                                            selected = "a1")
+    #
+    # }
+
   })
   
   
@@ -765,7 +787,8 @@ function(input, output, session) {
                          " in ",
                          paste(input$countries_selector, collapse = ","),
                          collapse = " ")) %>%
-      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 20], data_country()[, max(DateRep) + 1]),
+      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 20],
+                                     data_country()[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
                 fillGraph = TRUE, fillAlpha = 0.4,
@@ -775,6 +798,108 @@ function(input, output, session) {
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5,
                                              pointSize = 4,
                                              fillAlpha = 0.5)) %>%
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
+    
+  })
+  
+  # stats by first 100th case or first 10th death by country -----
+  data_country_stat_by_first_cases <- reactive({
+    
+    shiny::req(input$countries_selector, input$stats_selector)
+    
+    data_res <- copy(data_corona_all_new_stats())
+    
+    data_res_cases <- copy(data_res[,
+                                    .SD[DateRep >= .SD[Cases_cumsum >= 100,
+                                                       min(DateRep,
+                                                           na.rm = T)]],
+                                    by = .(Country)])
+    
+    setorder(data_res_cases,
+             Country,
+             DateRep)
+    
+    data_res_cases[, Days_since_first_100th_case := 1:.N,
+                   by = .(Country)]
+    
+    data_res_cases <- copy(data_res_cases[.(input$countries_selector),
+                                          on = .(Country),
+                                          .SD,
+                                          .SDcols = c("Country",
+                                                      "Days_since_first_100th_case",
+                                                      input$stats_selector)
+                                          ])
+    
+    data_res_cases
+
+  })
+  
+  data_country_stat_by_first_deaths <- reactive({
+    
+    shiny::req(input$countries_selector, input$stats_selector)
+    
+    data_res <- copy(data_corona_all_new_stats())
+    
+    data_res_deaths <- copy(data_res[,
+                                     .SD[DateRep >= .SD[Deaths_cumsum >= 10,
+                                                        min(DateRep)]],
+                                     by = .(Country)])
+    
+    setorder(data_res_deaths,
+             Country,
+             DateRep)
+    
+    data_res_deaths[, Days_since_first_10th_death := 1:.N,
+                    by = .(Country)]
+    
+    data_res_deaths <- copy(data_res_deaths[.(input$countries_selector),
+                                            on = .(Country),
+                                            .SD,
+                                            .SDcols = c("Country",
+                                                        "Days_since_first_10th_death",
+                                                        input$stats_selector)
+                                            ])
+    
+    data_res_deaths
+    
+  })
+  
+  # Show stats since first for the selected countries ----
+  output$dygraph_countries_stats_since_first <- renderDygraph({
+    
+    shiny::req(input$countries_selector, input$stats_selector)
+    
+    if (grepl(pattern = "case", x = input$stats_selector) | grepl(pattern = "Case", x = input$stats_selector)) {
+      
+      data_res <- dcast(data_country_stat_by_first_cases(),
+                        Days_since_first_100th_case ~ Country,
+                        value.var = input$stats_selector)
+      
+    } else if (grepl(pattern = "eath", x = input$stats_selector)) {
+      
+      data_res <- dcast(data_country_stat_by_first_deaths(),
+                        Days_since_first_10th_death ~ Country,
+                        value.var = input$stats_selector)
+      
+    }
+    
+    dygraph(data_res,
+            main = paste(paste(input$stats_selector, collapse = ","),
+                         " in ",
+                         paste(input$countries_selector, collapse = ","),
+                         collapse = " ")) %>%
+      dyRangeSelector(strokeColor = "#222d32") %>% # fillColor = "#5bc0de",
+      dyAxis("x", label = colnames(data_res)[1]) %>%
+      dyOptions(
+                # useDataTimezone = TRUE,
+                strokeWidth = 2,
+                # fillGraph = TRUE, fillAlpha = 0.4,
+                drawPoints = TRUE, pointSize = 3,
+                pointShape = "circle",
+                colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Set2")) %>%
+      dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5,
+                                             pointSize = 4)
+                  ) %>%
       dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
   })
