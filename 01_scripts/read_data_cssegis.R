@@ -86,9 +86,9 @@ read_data_recovered <- function() {
   data_recovered <- fread("https://github.com/ulklc/covid19-timeseries/raw/master/countryReport/raw/rawReport.csv")
   
   setnames(data_recovered, colnames(data_recovered)[3], "Country")
-  data_recovered[, (c("confirmed", "death", "region", "countryCode", "lat", "lon")) := NULL]
+  data_recovered[, (c("confirmed", "death", "region", "countryCode")) := NULL]
   
-  setnames(data_recovered, colnames(data_recovered)[c(1,3)], c("DateRep", "Recovered_cumsum"))
+  setnames(data_recovered, colnames(data_recovered)[c(1,5)], c("DateRep", "Recovered_cumsum"))
   data_recovered[, DateRep := lubridate::ymd(DateRep)]
   
   data_recovered[.("United States"), on = .(Country), Country := "US"]
@@ -100,7 +100,7 @@ read_data_recovered <- function() {
   data_recovered[.("Vatican City"), on = .(Country), Country := "Holy See"]
   data_recovered[.("Ivory Coast"), on = .(Country), Country := "Cote d'Ivoire"]
   
-  data_recovered[, unique(Country)]
+  # data_recovered[, unique(Country)]
   
   # New Cases per day
   setorder(data_recovered, Country, DateRep)
@@ -157,10 +157,16 @@ join_all_corona_data <- function() {
            on = .(Country, DateRep),
            (c("Deaths_cumsum", "Deaths")) := .(i.Deaths_cumsum, i.Deaths)]
   
+  
+  data_all[.("Burma"), on = .(Country), Country := "Myanmar"]
+  data_all[.("West Bank and Gaza"), on = .(Country), Country := "Palestine"]
+  
   # join recovered
   data_all[data_recov,
            on = .(Country, DateRep),
-           (c("Recovered_cumsum", "Recovered")) := .(i.Recovered_cumsum, i.Recovered)]
+           (c("Recovered_cumsum", "Recovered",
+              "lat", "lon")) := .(i.Recovered_cumsum, i.Recovered,
+                                  i.lat, i.lon)]
   
   # compute active cases cumsum
   data_all[, Active_cases_cumsum := Cases_cumsum - Deaths_cumsum - Recovered_cumsum]

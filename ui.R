@@ -218,24 +218,28 @@ body <- dashboardBody(
             fluidRow(
               box(title = span(icon("flag"), " Select multiple countries for comparison"),
                   solidHeader = F,
-                  collapsible = TRUE, width = 12,
+                  collapsible = TRUE, width = 7,
                   uiOutput("checkboxgroup_countries_selector")
                   ),
               box(title = span(icon("table"), " Select one statistic for comparison"),
                   solidHeader = F,
-                  collapsible = TRUE, width = 12,
+                  collapsible = TRUE, width = 5,
                   uiOutput("checkboxgroup_stats_selector")
-                  ),
-              box(title = span(icon("chart-area"), " Comparison of countries"),
-                  solidHeader = F,
-                  collapsible = TRUE, width = 12,
-                  dygraphOutput("dygraph_countries_stats") %>% withSpinner(color = "#5bc0de")
-                  ),
+                  )
+              ),
+            fluidRow(
               box(title = span(icon("chart-line"), " Comparison of countries since their first total 100th case/ 10th death"),
                   solidHeader = F,
                   collapsible = TRUE, width = 12,
                   dygraphOutput("dygraph_countries_stats_since_first") %>% withSpinner(color = "#5bc0de")
               )
+            ),
+            fluidRow(
+              box(title = span(icon("chart-area"), " Comparison of countries"),
+                  solidHeader = F,
+                  collapsible = TRUE, width = 12,
+                  dygraphOutput("dygraph_countries_stats") %>% withSpinner(color = "#5bc0de")
+                  )
               )
             )
   )

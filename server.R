@@ -677,21 +677,39 @@ function(input, output, session) {
   
   #### Comparison of countries ------
   
+  # output$checkboxgroup_countries_selector <- renderUI({
+  #   
+  #   shinyWidgets::checkboxGroupButtons(
+  #     inputId = "countries_selector",
+  #     label = "Pick countries for comparison:",
+  #     choices = data_corona()[, unique(Country)],
+  #     selected = c("US", "Italy", "France", "Spain", "Germany", "United Kingdom"), 
+  #     checkIcon = list(
+  #       yes = tags$i(class = "fa fa-check-square", 
+  #                    style = "color: blue"),
+  #       no = tags$i(class = "fa fa-square-o", 
+  #                   style = "color: blue")
+  #     )
+  #   )
+  #   
+  # })
+  
   output$checkboxgroup_countries_selector <- renderUI({
     
-    shinyWidgets::checkboxGroupButtons(
-      inputId = "countries_selector",
-      label = "Pick countries for comparison:",
-      choices = data_corona()[, unique(Country)],
-      selected = c("US", "Italy", "France", "Spain", "Germany", "United Kingdom"), 
-      checkIcon = list(
-        yes = tags$i(class = "fa fa-check-square", 
-                     style = "color: blue"),
-        no = tags$i(class = "fa fa-square-o", 
-                    style = "color: blue")
-      )
+    shinyWidgets::pickerInput(
+    inputId = "countries_selector",
+    label = NULL, 
+    choices = data_corona()[, unique(Country)],
+    selected = c("US", "Italy", "France", "Spain", "Germany", "United Kingdom",
+                 "Belgium", "Netherlands", "Austria"),
+    multiple = TRUE,
+    options = list(
+      `actions-box` = TRUE,
+       style = "btn-info",
+      `live-search` = TRUE,
+       size = 8),
     )
-    
+  
   })
   
   data_corona_all_new_stats <- reactive({
@@ -708,52 +726,72 @@ function(input, output, session) {
     data_res[, ('Total confirmed cases per 1 million population') := ceiling((Cases_cumsum / Population) * 1e6)]
     
     data_res[, Population := NULL]
+    data_res[, lat := NULL]
+    data_res[, lon := NULL]
     
     data_res
     
   })
   
+  # output$checkboxgroup_stats_selector <- renderUI({
+  #   
+  #   data_res <- copy(data_corona_all_new_stats())
+  # 
+  #   shinyWidgets::checkboxGroupButtons(
+  #     inputId = "stats_selector",
+  #     label = "Pick one statistic for comparison:",
+  #     choices = colnames(data_res)[-c(1:2)],
+  #     selected = 'Total active cases per 1 million population', 
+  #     checkIcon = list(
+  #       yes = tags$i(class = "fa fa-check-square", 
+  #                    style = "color: red"),
+  #       no = tags$i(class = "fa fa-square-o", 
+  #                   style = "color: red")
+  #     )
+  #   )
+  #   
+  # })
+  
   output$checkboxgroup_stats_selector <- renderUI({
     
     data_res <- copy(data_corona_all_new_stats())
-
-    shinyWidgets::checkboxGroupButtons(
+    
+    shinyWidgets::pickerInput(
       inputId = "stats_selector",
-      label = "Pick one statistic for comparison:",
+      label = NULL, 
       choices = colnames(data_res)[-c(1:2)],
-      selected = 'Total active cases per 1 million population', 
-      checkIcon = list(
-        yes = tags$i(class = "fa fa-check-square", 
-                     style = "color: red"),
-        no = tags$i(class = "fa fa-square-o", 
-                    style = "color: red")
-      )
+      selected = 'Total active cases per 1 million population',
+      multiple = F,
+      options = list(
+        # `actions-box` = TRUE,
+        style = "btn-danger",
+        `live-search` = TRUE,
+        size = 8),
     )
     
   })
   
-  my_min <- 1
-  my_max <- 1
-
-  observe({
-
-    if (length(input$stats_selector) > my_max) {
-
-      shinyWidgets::updateCheckboxGroupButtons(session,
-                                               "stats_selector",
-                                               selected = tail(input$stats_selector, my_max))
-    }
-
-    # if (length(input$stats_selector) < my_min) {
-    #
-    #   shinyWidgets::updateCheckboxGroupButtons(session,
-    #                                            "stats_selector",
-    #                                            selected = "a1")
-    #
-    # }
-
-  })
-  
+  # my_min <- 1
+  # my_max <- 1
+  # 
+  # observe({
+  # 
+  #   if (length(input$stats_selector) > my_max) {
+  # 
+  #     shinyWidgets::updateCheckboxGroupButtons(session,
+  #                                              "stats_selector",
+  #                                              selected = tail(input$stats_selector, my_max))
+  #   }
+  # 
+  #   # if (length(input$stats_selector) < my_min) {
+  #   #
+  #   #   shinyWidgets::updateCheckboxGroupButtons(session,
+  #   #                                            "stats_selector",
+  #   #                                            selected = "a1")
+  #   #
+  #   # }
+  # 
+  # })
   
   data_country_stat_selected <- reactive({
     
