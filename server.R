@@ -719,13 +719,16 @@ function(input, output, session) {
     data_res <- copy(data_corona())
     
     data_res[, ('Death rate (%)') := round((Deaths_cumsum / Cases_cumsum) * 100, 2)]
-    
-    data_res[, ('New confirmed cases per 1 million population') := ceiling((Cases / Population) * 1e6)]
-    data_res[, ('New confirmed deaths per 1 million population') := ceiling((Deaths / Population) * 1e6)]
-    
+
     data_res[, ('Total active cases per 1 million population') := ceiling((Active_cases_cumsum / Population) * 1e6)]
     data_res[, ('Total deaths per 1 million population') := ceiling((Deaths_cumsum / Population) * 1e6)]
-    data_res[, ('Total confirmed cases per 1 million population') := ceiling((Cases_cumsum / Population) * 1e6)]
+    data_res[, ('Total cases per 1 million population') := ceiling((Cases_cumsum / Population) * 1e6)]
+    data_res[, ('Total recovered cases per 1 million population') := ceiling((Recovered_cumsum / Population) * 1e6)]
+        
+    data_res[, ('New cases per 1 million population') := ceiling((Cases / Population) * 1e6)]
+    data_res[, ('New deaths per 1 million population') := ceiling((Deaths / Population) * 1e6)]
+    data_res[, ('New recovered cases per 1 million population') := ceiling((Recovered / Population) * 1e6)]
+
     
     data_res[, Population := NULL]
     data_res[, lat := NULL]
@@ -909,7 +912,9 @@ function(input, output, session) {
     
     shiny::req(input$countries_selector, input$stats_selector)
     
-    if (grepl(pattern = "case", x = input$stats_selector) | grepl(pattern = "Case", x = input$stats_selector)) {
+    if (grepl(pattern = "case", x = input$stats_selector) |
+        grepl(pattern = "Case", x = input$stats_selector) |
+        grepl(pattern = "Recove", x = input$stats_selector)) {
       
       data_res <- dcast(data_country_stat_by_first_cases(),
                         Days_since_first_100th_case ~ Country,
