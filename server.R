@@ -23,15 +23,15 @@ function(input, output, session) {
                startExpanded = F,
                selected = T
                ),
-      menuItem("COVID-19 World agg.",
-               icon = icon("globe"),
-               tabName = "worldTab",
-               startExpanded = F,
-               selected = F
-               ),
       menuItem("Compare countries",
                icon = icon("balance-scale"),
                tabName = "compareTab",
+               startExpanded = F,
+               selected = F
+               ),
+      menuItem("COVID-19 World agg.",
+               icon = icon("globe"),
+               tabName = "worldTab",
                startExpanded = F,
                selected = F
                )
@@ -46,7 +46,7 @@ function(input, output, session) {
                      There isn't motivation to replace more sophisticated epidemiology models like SIR."),
               tags$p("Data are coming from",
                      tags$a(href = 'https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series',
-                            target="_blank", "Johns Hopkins CSSE GitHub repository."),
+                            target="_blank", "Johns Hopkins CSSE GitHub repository"),
                      "and",
                      tags$a(href = 'https://github.com/ulklc/covid19-timeseries',
                             target="_blank", "GitHub repository by ulklc.")),
@@ -55,10 +55,12 @@ function(input, output, session) {
                       For total cumulative confirmed cases, the fully multiplicative model is used.
                       For total cumulative death cases of the World, also the fully multiplicative model is used
                      (it is the possibility of using a damped trend in both situations)."),
-              tags$p(tags$a("You can check the aggregated World cases in the second tab.",
-                            onclick = "openTab('worldTab')", href="#"),
-                     tags$a("You can also compare multiple countries for multiple statistics in the third tab.",
-                            onclick = "openTab('compareTab')", href="#")),
+              tags$p(
+                tags$a("You can compare multiple countries for various statistics in the second tab.",
+                       onclick = "openTab('compareTab')", href="#"),
+                tags$a("You can also check the aggregated World cases in the third tab + forecasts.",
+                            onclick = "openTab('worldTab')", href="#")
+                       ),
               tags$p("The forecasting model applied on the Covid-19 use case was inspired by",
                      tags$a(href = 'https://twitter.com/fotpetr',
                             target="_blank", "Fotios Petropoulos tweets.")),
@@ -694,7 +696,7 @@ function(input, output, session) {
   #   
   # })
   
-  output$checkboxgroup_countries_selector <- renderUI({
+  output$picker_countries_selector <- renderUI({
     
     shinyWidgets::pickerInput(
     inputId = "countries_selector",
@@ -752,7 +754,7 @@ function(input, output, session) {
   #   
   # })
   
-  output$checkboxgroup_stats_selector <- renderUI({
+  output$picker_stats_selector <- renderUI({
     
     data_res <- copy(data_corona_all_new_stats())
     
@@ -832,7 +834,7 @@ function(input, output, session) {
                 fillGraph = TRUE, fillAlpha = 0.4,
                 drawPoints = TRUE, pointSize = 3,
                 pointShape = "circle",
-                colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Set2")) %>%
+                colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Spectral")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5,
                                              pointSize = 4,
                                              fillAlpha = 0.5)) %>%
@@ -926,7 +928,7 @@ function(input, output, session) {
                          " in ",
                          paste(input$countries_selector, collapse = ","),
                          collapse = " ")) %>%
-      dyRangeSelector(strokeColor = "#222d32") %>% # fillColor = "#5bc0de",
+      dyRangeSelector(fillColor = "#5bc0de", strokeColor = "#222d32") %>% # fillColor = "#5bc0de",
       dyAxis("x", label = colnames(data_res)[1]) %>%
       dyOptions(
                 # useDataTimezone = TRUE,
@@ -934,7 +936,7 @@ function(input, output, session) {
                 # fillGraph = TRUE, fillAlpha = 0.4,
                 drawPoints = TRUE, pointSize = 3,
                 pointShape = "circle",
-                colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Set2")) %>%
+                colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Spectral")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5,
                                              pointSize = 4)
                   ) %>%
