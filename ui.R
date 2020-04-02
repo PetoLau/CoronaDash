@@ -176,17 +176,23 @@ body <- dashboardBody(
             fluidRow(
               box(title = span(icon("flag"), " Select multiple countries for comparison"),
                   solidHeader = F,
-                  collapsible = TRUE, width = 7,
+                  collapsible = F, width = 6,
                   uiOutput("picker_countries_selector")
                   ),
               box(title = span(icon("table"), " Select one statistic for comparison"),
                   solidHeader = F,
-                  collapsible = TRUE, width = 5,
+                  collapsible = F, width = 3,
                   uiOutput("picker_stats_selector")
+                  ),
+              box(title = span(icon("angle-double-up"), " Set parameters for comparison of \"since first\" trajectories graph"),
+                  solidHeader = F,
+                  collapsible = F, width = 3,
+                  uiOutput("selector_cases_since_first_n"),
+                  uiOutput("selector_deaths_since_first_n")
                   )
               ),
             fluidRow(
-              box(title = span(icon("chart-line"), " Comparison of countries since their first total 100th case/ 10th death"),
+              box(title = span(icon("chart-line"), " Comparison of countries' trajectories since their first total N-th case/ N-th death"),
                   solidHeader = F,
                   collapsible = TRUE, width = 12,
                   dygraphOutput("dygraph_countries_stats_since_first") %>% withSpinner(color = "#5bc0de")

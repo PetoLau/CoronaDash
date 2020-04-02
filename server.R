@@ -103,7 +103,7 @@ function(input, output, session) {
       inputId = "country",
       label = "Pick a country:", 
       choices = data_corona()[, unique(Country)],
-      selected = "Italy",
+      selected = "US",
       options = list(
         `live-search` = TRUE,
          style = "btn-info",
@@ -703,7 +703,7 @@ function(input, output, session) {
     label = NULL, 
     choices = data_corona()[, unique(Country)],
     selected = c("US", "Italy", "France", "Spain", "Germany", "United Kingdom",
-                 "Belgium", "Netherlands", "Austria"),
+                 "Belgium", "Netherlands", "Austria", "Slovakia"),
     multiple = TRUE,
     options = list(
       `actions-box` = TRUE,
@@ -845,15 +845,41 @@ function(input, output, session) {
     
   })
   
+  # 
+  
+  output$selector_cases_since_first_n <- renderUI({
+    
+    numericInput(inputId = "cases_since_first_n",
+                 label = "Select number of cases:",
+                 value = 100,
+                 min = 1,
+                 max = 1e6,
+                 step = 2
+                 )
+    
+  })
+  
+  output$selector_deaths_since_first_n <- renderUI({
+    
+    numericInput(inputId = "deaths_since_first_n",
+                 label = "Select number of deaths:",
+                 value = 20,
+                 min = 1,
+                 max = 1e6,
+                 step = 2
+                 )
+    
+  })
+  
   # stats by first 100th case or first 10th death by country -----
   data_country_stat_by_first_cases <- reactive({
     
-    shiny::req(input$countries_selector, input$stats_selector)
+    shiny::req(input$countries_selector, input$stats_selector, input$cases_since_first_n)
     
     data_res <- copy(data_corona_all_new_stats())
     
     data_res_cases <- copy(data_res[,
-                                    .SD[DateRep >= .SD[Cases_cumsum >= 100,
+                                    .SD[DateRep >= .SD[Cases_cumsum >= input$cases_since_first_n,
                                                        min(DateRep,
                                                            na.rm = T)]],
                                     by = .(Country)])
@@ -862,14 +888,14 @@ function(input, output, session) {
              Country,
              DateRep)
     
-    data_res_cases[, Days_since_first_100th_case := 1:.N,
+    data_res_cases[, (paste0("Days_since_first_", input$cases_since_first_n, "_case")) := 1:.N,
                    by = .(Country)]
     
     data_res_cases <- copy(data_res_cases[.(input$countries_selector),
                                           on = .(Country),
                                           .SD,
                                           .SDcols = c("Country",
-                                                      "Days_since_first_100th_case",
+                                                      paste0("Days_since_first_", input$cases_since_first_n, "_case"),
                                                       input$stats_selector)
                                           ])
     
@@ -879,12 +905,12 @@ function(input, output, session) {
   
   data_country_stat_by_first_deaths <- reactive({
     
-    shiny::req(input$countries_selector, input$stats_selector)
+    shiny::req(input$countries_selector, input$stats_selector, input$deaths_since_first_n)
     
     data_res <- copy(data_corona_all_new_stats())
     
     data_res_deaths <- copy(data_res[,
-                                     .SD[DateRep >= .SD[Deaths_cumsum >= 10,
+                                     .SD[DateRep >= .SD[Deaths_cumsum >= input$deaths_since_first_n,
                                                         min(DateRep)]],
                                      by = .(Country)])
     
@@ -892,14 +918,14 @@ function(input, output, session) {
              Country,
              DateRep)
     
-    data_res_deaths[, Days_since_first_10th_death := 1:.N,
+    data_res_deaths[, (paste0("Days_since_first_", input$deaths_since_first_n, "_death")) := 1:.N,
                     by = .(Country)]
     
     data_res_deaths <- copy(data_res_deaths[.(input$countries_selector),
                                             on = .(Country),
                                             .SD,
                                             .SDcols = c("Country",
-                                                        "Days_since_first_10th_death",
+                                                        paste0("Days_since_first_", input$deaths_since_first_n, "_death"),
                                                         input$stats_selector)
                                             ])
     
@@ -910,21 +936,26 @@ function(input, output, session) {
   # Show stats since first for the selected countries ----
   output$dygraph_countries_stats_since_first <- renderDygraph({
     
-    shiny::req(input$countries_selector, input$stats_selector)
-    
+    shiny::req(input$countries_selector, input$stats_selector,
+               input$deaths_since_first_n, input$deaths_since_first_n)
+
     if (grepl(pattern = "case", x = input$stats_selector) |
         grepl(pattern = "Case", x = input$stats_selector) |
         grepl(pattern = "Recove", x = input$stats_selector)) {
       
       data_res <- dcast(data_country_stat_by_first_cases(),
-                        Days_since_first_100th_case ~ Country,
+                        get(paste0("Days_since_first_", input$cases_since_first_n, "_case")) ~ Country,
                         value.var = input$stats_selector)
       
+      setnames(data_res, colnames(data_res)[1], paste0("Days_since_first_", input$cases_since_first_n, "_case"))
+
     } else if (grepl(pattern = "eath", x = input$stats_selector)) {
       
       data_res <- dcast(data_country_stat_by_first_deaths(),
-                        Days_since_first_10th_death ~ Country,
+                        get(paste0("Days_since_first_", input$deaths_since_first_n, "_death")) ~ Country,
                         value.var = input$stats_selector)
+      
+      setnames(data_res, colnames(data_res)[1], paste0("Days_since_first_", input$deaths_since_first_n, "_death"))
       
     }
     
