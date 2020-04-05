@@ -52,8 +52,8 @@ function(input, output, session) {
                             target="_blank", "GitHub repository by ulklc.")),
               tags$p("The forecasting model is the ETS (Exponential smoothing) implemented in a smooth R package,
                       so only historical data of target time series are used (extrapolation).
-                      For total cumulative confirmed cases, the fully multiplicative model is used.
-                      For total cumulative death cases of the World, also the fully multiplicative model is used
+                      For total cumulative confirmed cases, the multiplicative model is used.
+                      For total cumulative death cases of the World, the fully multiplicative model is used
                      (it is the possibility of using a damped trend in both situations)."),
               tags$p(
                 tags$a("You can compare multiple countries for various statistics in the second tab.",
@@ -327,8 +327,8 @@ function(input, output, session) {
                  Cases_cumsum_lwr = floor(data_forec$forecast),
                  Cases_cumsum_upr = data_forec$upper
                  )
-    ), fill = TRUE, use.names = TRUE
-    )
+      ), fill = TRUE, use.names = TRUE
+      )
     
     data_res[, Model := data_forec$model]
     

@@ -4,7 +4,6 @@ forec_cases_cumsum <- function(data, n_ahead) {
   
   data_ts <- ts(data[Cases_cumsum != 0, Cases_cumsum])
   
-  
   if (length(data_ts) < 6) {
     
     data_ts <- ts(c(rep(data[Cases_cumsum != 0, Cases_cumsum][1], 6 - length(data_ts)),
@@ -13,14 +12,44 @@ forec_cases_cumsum <- function(data, n_ahead) {
   }
   
   pred <- es(data_ts,
-             model = c("MMN", "MMdN"),
-             ic = "AICc",
+             model = c("MMN", "MMdN", "MAdN", "AMdN"),
+             ic = "BICc",
              h = n_ahead,
              loss = "MSE",
              interval = "parametric",
              level = 0.90,
              silent = "all"
              )
+  
+  if (pred$forecast[1] < data_ts[length(data_ts)]) {
+    
+    print("using only cases!")
+    
+    data_ts <- ts(data[Cases != 0, Cases])
+    
+    
+    if (length(data_ts) < 6) {
+      
+      data_ts <- ts(c(rep(data[Cases != 0, Cases][1], 6 - length(data_ts)),
+                      data_ts))
+      
+    }
+    
+    pred <- es(data_ts,
+               model = c("MMN", "MMdN", "MAdN", "AMN", "AMdN"),
+               ic = "BICc",
+               h = n_ahead,
+               loss = "MSE",
+               interval = "parametric",
+               level = 0.90,
+               silent = "all"
+               )
+    
+    pred$forecast <- cumsum(pred$forecast) + data[.N, Cases_cumsum]
+    pred$upper <- cumsum(pred$forecast) + data[.N, Cases_cumsum]
+    pred$upper <- pred$upper + pred$upper*0.1
+    
+  }
   
   return(pred)
   
