@@ -1,6 +1,8 @@
 # Read data from JHU source CSSE ARCGIS -----
 # https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series
 
+source("01_scripts/read_data_worldometer.R")
+
 read_data_cases <- function() {
   
   # data_confirmed <- fread("02_data/time_series_19-covid-Confirmed.csv")
@@ -151,6 +153,7 @@ join_all_corona_data <- function() {
   data_all <- copy(read_data_cases())
   data_deaths <- copy(read_data_deaths())
   data_recov <- copy(read_data_recovered())
+  data_tests <- copy(read_data_worldometer())
   
   # join deaths
   data_all[data_deaths,
@@ -167,6 +170,13 @@ join_all_corona_data <- function() {
            (c("Recovered_cumsum", "Recovered",
               "lat", "lon")) := .(i.Recovered_cumsum, i.Recovered,
                                   i.lat, i.lon)]
+  
+  # join tests
+  data_all[data_tests,
+           on = .(Country),
+           (c("TotalTests", "Tests_1M_Pop")) := 
+             .(i.TotalTests, i.Tests_1M_Pop
+               )]
   
   # compute active cases cumsum
   data_all[, Active_cases_cumsum := Cases_cumsum - Deaths_cumsum - Recovered_cumsum]

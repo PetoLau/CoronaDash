@@ -139,7 +139,9 @@ body <- dashboardBody(
                   valueBoxOutput("valuebox_death_rate") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_total_active") %>% withSpinner(color = "#5bc0de"),
                   valueBoxOutput("valuebox_total_recov") %>% withSpinner(color = "#5bc0de"),
-                  valueBoxOutput("valuebox_active_per_mil") %>% withSpinner(color = "#5bc0de")
+                  valueBoxOutput("valuebox_active_per_mil") %>% withSpinner(color = "#5bc0de"),
+                  valueBoxOutput("valuebox_positivetests_rate") %>% withSpinner(color = "#5bc0de"),
+                  valueBoxOutput("valuebox_num_tests_pop") %>% withSpinner(color = "#5bc0de")
                   )
               ),
             fluidRow(
@@ -206,6 +208,63 @@ body <- dashboardBody(
                   )
               )
             ),
+    tabItem(tabName = "analysisTab",
+            fluidRow(
+              box(title = span(icon("balance-scale"), " Select statistics to compare countries"),
+                  solidHeader = F,
+                  collapsible = F, width = 5,
+                  uiOutput("picker_stat_scatterplot_x"),
+                  uiOutput("picker_stat_scatterplot_y")
+                  ),
+              box(title = span(icon("balance-scale"), " Select parameters for analysis/ clustering"),
+                  solidHeader = F,
+                  collapsible = F, width = 5,
+                  uiOutput("selector_top_n_countries_x"),
+                  uiOutput("selector_n_clusters"),
+                  )
+              ),
+              fluidRow(
+                box(title = span(icon("chart-area"), " Scatter plot of countries for selected statistics"),
+                    footer = "Zoom in for cleaner view.",
+                    solidHeader = F,
+                    collapsible = F, width = 6,
+                    plotlyOutput("plotly_scatterplot_2d_country_stat") %>% withSpinner(color = "#5bc0de")
+                ),
+                box(title = span(icon("chart-area"), " Dendogram of clustered countries based on similarities of selected statistics"),
+                    footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
+                    solidHeader = F,
+                    collapsible = F, width = 6,
+                    plotOutput("clust_res_2d", height = "75vh") %>% withSpinner(color = "#5bc0de")
+                )
+            ),
+            fluidRow(
+              box(title = span(icon("balance-scale"), " Select multiple statistics for clustering countries based on these data"),
+                  solidHeader = F,
+                  collapsible = F, width = 9,
+                  uiOutput("picker_multiple_stats_clust")
+              ),
+              box(title = span(icon("balance-scale"), " Select parameters for analysis/ clustering"),
+                  solidHeader = F,
+                  collapsible = F, width = 3,
+                  uiOutput("selector_top_n_countries_multi"),
+                  uiOutput("selector_n_clusters_multi")
+                  )
+            ),
+            fluidRow(
+              box(title = span(icon("chart-area"), " MDS-Scatter plot of countries for selected statistics"),
+                  footer = "Zoom in for cleaner view. MDS - Multidimensional scaling - parametric.",
+                  solidHeader = F,
+                  collapsible = F, width = 6,
+                  plotlyOutput("plotly_scatterplot_mds_country_stats") %>% withSpinner(color = "#5bc0de")
+              ),
+              box(title = span(icon("chart-area"), " Dendogram of clustered countries based on similarities of selected statistics"),
+                  footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
+                  solidHeader = F,
+                  collapsible = F, width = 6,
+                  plotOutput("clust_res_multidim", height = "75vh") %>% withSpinner(color = "#5bc0de")
+              )
+            )
+    ),
     tabItem(tabName = "worldTab",
             fluidRow(
               box(title = span(icon("table"), " World statistics"),

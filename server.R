@@ -24,8 +24,14 @@ function(input, output, session) {
                selected = T
                ),
       menuItem("Compare countries",
-               icon = icon("balance-scale"),
+               icon = icon("chart-bar"),
                tabName = "compareTab",
+               startExpanded = F,
+               selected = F
+               ),
+      menuItem("Cluster countries",
+               icon = icon("object-group"),
+               tabName = "analysisTab",
                startExpanded = F,
                selected = F
                ),
@@ -36,6 +42,30 @@ function(input, output, session) {
                selected = F
                )
       )
+  })
+  
+  observe({
+    
+    query <- parseQueryString(session$clientData$url_search)
+    
+    query1 <- paste(names(query), query, sep = "=", collapse = ", ")
+    
+    print(query1)
+    
+    if (query1 == "tab=compareTab") {
+      
+      updateTabItems(session, inputId = "sideBar_Menu", selected = "compareTab")
+      
+    } else if (query1 == "tab=worldTab") {
+      
+      updateTabItems(session, inputId = "sideBar_Menu", selected = "worldTab")
+      
+    } else if (query1 == "tab=analysisTab") {
+      
+      updateTabItems(session, inputId = "sideBar_Menu", selected = "analysisTab")
+      
+    }
+    
   })
   
   # informative text for this app -----
@@ -56,9 +86,11 @@ function(input, output, session) {
                       For total cumulative death cases of the World, the fully multiplicative model is used
                      (it is the possibility of using a damped trend in both situations)."),
               tags$p(
-                tags$a("You can compare multiple countries for various statistics in the second tab.",
+                tags$a("You can compare multiple countries' trajectories for various statistics in the Compare countries tab,",
                        onclick = "openTab('compareTab')", href="#"),
-                tags$a("You can also check the aggregated World cases in the third tab + forecasts.",
+                tags$a("and clustering of countries viewed on scatter plots and dendograms in the Countries analysis tab.",
+                       onclick = "openTab('analysisTab')", href="#"),
+                tags$a("You can also check the aggregated World cases + forecasts in the COVID-19 World agg. tab.",
                             onclick = "openTab('worldTab')", href="#")
                        ),
               tags$p("The forecasting model applied on the Covid-19 use case was inspired by",
@@ -152,7 +184,9 @@ function(input, output, session) {
                                       'Total Deaths' = Deaths_cumsum,
                                       'Active Cases' = Active_cases_cumsum,
                                       'New cases' = Cases,
-                                      'ActCases/ MilPop' = ceiling((Active_cases_cumsum / Population) * 1e6)
+                                      'ActCases/ MilPop' = ceiling((Active_cases_cumsum / Population) * 1e6),
+                                      'PositiveTests Rate' = round((Cases_cumsum / TotalTests) * 100, 2),
+                                      'Tests/ MilPop' = Tests_1M_Pop
                                       )],
                   selection = "single",
                   class = "compact",
@@ -246,6 +280,30 @@ function(input, output, session) {
       color = "purple"
     )
     
+  })
+  
+  output$valuebox_positivetests_rate <- renderValueBox({
+    
+    valueBox(
+      paste0(data_country()[.N,
+                            round((Cases_cumsum / TotalTests)*100, 2)], "%"),
+      "Positive tests rate",
+      icon = icon("vial"),
+      color = "maroon"
+    )
+    
+  })
+  
+  output$valuebox_num_tests_pop <- renderValueBox({
+    
+    valueBox(
+      paste0(data_country()[.N,
+                             Tests_1M_Pop]),
+             "Number of tests per 1 million population",
+             icon = icon("vials"),
+             color = "olive"
+      )
+      
   })
   
   # informative text for cases -----
@@ -977,6 +1035,390 @@ function(input, output, session) {
                                              pointSize = 4)
                   ) %>%
       dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
+    
+  })
+  
+  ### Scatter plot - clustering comparison of countries -----
+  
+  # Compute last available stats for countries
+  data_countries_lastday_all_stats <- reactive({
+    
+    data_res_latest <- copy(data_countries_stats())
+    
+    data_res_latest_stats <- copy(data_res_latest[, .(Country,
+                                                      'Total cases' = Cases_cumsum,
+                                                      'Total deaths' = Deaths_cumsum,
+                                                      'Active cases' = Active_cases_cumsum,
+                                                      'Total tests' = TotalTests,
+                                                      'New cases' = Cases,
+                                                      'New cases per 1 million population' = ceiling((Cases / Population) * 1e6),
+                                                      'New deaths per 1 million population' = ceiling((Deaths / Population) * 1e6),
+                                                      'New recovered cases per 1 million population' = ceiling((Recovered / Population) * 1e6),
+                                                      'Death rate (%)' = round((Deaths_cumsum / Cases_cumsum) * 100, 2),
+                                                      'Positive tests rate (%)' = round((Cases_cumsum / TotalTests) * 100, 2),
+                                                      'Total active cases per 1 million population' = ceiling((Active_cases_cumsum / Population) * 1e6),
+                                                      'Total deaths per 1 million population' = ceiling((Deaths_cumsum / Population) * 1e6),
+                                                      'Total cases per 1 million population' = ceiling((Cases_cumsum / Population) * 1e6),
+                                                      'Total recovered cases per 1 million population' = ceiling((Recovered_cumsum / Population) * 1e6),
+                                                      'Total tests per 1 million population' = Tests_1M_Pop,
+                                                      Population
+                                                      )
+                                                  ]
+                                  )
+    
+    data_res_latest_stats
+
+  })
+  
+  # columns selector - x and y ----
+  
+  output$picker_stat_scatterplot_x <- renderUI({
+    
+    data_res <- copy(data_countries_lastday_all_stats())
+    
+    shinyWidgets::pickerInput(
+      inputId = "stat_scatterplot_x",
+      label = "x axis:", 
+      choices = colnames(data_res)[-c(1)],
+      selected = 'Total active cases per 1 million population',
+      multiple = F,
+      options = list(
+        # `actions-box` = TRUE,
+        style = "btn-info",
+        `live-search` = TRUE,
+        size = 8),
+    )
+    
+  })
+  
+  output$picker_stat_scatterplot_y <- renderUI({
+    
+    shiny::req(input$stat_scatterplot_x)
+    
+    data_res <- copy(data_countries_lastday_all_stats())
+    
+    data_columns <- colnames(data_res)[-1]
+    
+    data_columns <- data_columns[!data_columns %in% input$stat_scatterplot_x]
+    
+    shinyWidgets::pickerInput(
+      inputId = "stat_scatterplot_y",
+      label = "y axis:", 
+      choices = data_columns,
+      selected = 'Positive tests rate (%)',
+      multiple = F,
+      options = list(
+        # `actions-box` = TRUE,
+        style = "btn-info",
+        `live-search` = TRUE,
+        size = 8),
+    )
+    
+  })
+  
+  # select top N countries from selected x stat
+  
+  output$selector_top_n_countries_x <- renderUI({
+    
+    data_res <- copy(data_countries_lastday_all_stats())
+    
+    numericInput(inputId = "top_n_countries_x",
+                 label = "Select number of top N countries from selected x statistic:",
+                 value = 48,
+                 min = 1,
+                 max = data_res[, .N],
+                 step = 2
+                 )
+    
+  })
+  
+  # Selected data for scatter plot ----
+  data_2d_scatterplot_selected <- reactive({
+    
+    shiny::req(input$stat_scatterplot_x, input$stat_scatterplot_y, input$top_n_countries_x)
+    
+    data_res <- copy(data_countries_lastday_all_stats()[Population > 1e6])
+    
+    data_res <- copy(data_res[, .SD,
+                              .SDcols = c("Country",
+                                          input$stat_scatterplot_x,
+                                          input$stat_scatterplot_y)
+                              ])
+
+    setorderv(data_res, input$stat_scatterplot_x, -1)
+    
+    data_res_subset <- copy(na.omit(data_res)[1:input$top_n_countries_x])
+    
+    if (sum(grepl(pattern = "Slovakia", x = data_res_subset$Country)) == 0) {
+      
+      data_res_subset <- rbindlist(list(data_res_subset,
+                                        data_res[.("Slovakia"), on = .(Country)]
+                                        )
+                                   )
+      
+    }
+    
+    data_res_subset
+    
+  })
+  
+  # Plotly scatter plot 2D ----
+  output$plotly_scatterplot_2d_country_stat <- renderPlotly({
+    
+    data_res <- copy(data_2d_scatterplot_selected())
+    
+    fig <- plot_ly(data_res,
+                   x = ~get(input$stat_scatterplot_x),
+                   y = ~get(input$stat_scatterplot_y),
+                   type = 'scatter',
+                   mode = 'text',
+                   text = ~Country,
+                   alpha = 0.75,
+                   textposition = 'middle right',
+                   textfont = list(color = '#000000', size = 14))
+    fig <- fig %>% layout(
+                          xaxis = list(title = input$stat_scatterplot_x,
+                                       zeroline = TRUE),
+                          yaxis = list(title = input$stat_scatterplot_y,
+                                       zeroline = TRUE)
+                          )
+    
+    fig
+    
+  })
+  
+  # clustering 2d data ----
+  
+  output$selector_n_clusters <- renderUI({
+    
+    data_res <- copy(data_countries_lastday_all_stats())
+    
+    numericInput(inputId = "n_clusters",
+                 label = "Select number of clusters:",
+                 value = 7,
+                 min = 2,
+                 max = data_res[, .N] - 1,
+                 step = 1
+    )
+    
+  })
+  
+  output$clust_res_2d <- renderPlot({
+    
+    shiny::req(input$n_clusters)
+    
+    data_res <- copy(data_2d_scatterplot_selected())
+    
+    k <- input$n_clusters
+    
+    data_res_norm <- scale(data.matrix(data_res[, .SD,
+                                                .SDcols = c(input$stat_scatterplot_x,
+                                                            input$stat_scatterplot_y)
+                                          ]),
+                           center = T, scale = T)
+    
+    hie_complete <- hclust(dist(data_res_norm),
+                           method = "ward.D2")
+    
+    dend <- as.dendrogram(hie_complete)
+    
+    # data_clust <- dendextend::cutree(hie_complete,
+    #                                  k = k)
+    
+    # print(data_clust)
+    
+    # data_clust_colors <- data.table(Cluster = 1:k,
+    #                                 Color = RColorBrewer::brewer.pal(k, name = "Set2"))
+    
+    # data_clust_merge <- data.table(Cluster = data_clust)
+    # data_clust_merge[data_clust_colors,
+    #                  on = .(Cluster),
+    #                  Color := i.Color]
+    
+    # print(data_clust_merge)
+    
+    dend <- dend %>%
+      color_branches(k = k) %>%
+      color_labels(k = k) %>%
+      set("branches_lwd", 1) %>% 
+      set("labels", data_res[, Country]) %>%
+      set("labels_cex", 0.9)
+    
+    ggd1 <- as.ggdend(rev(dend))
+    
+    gg_dendo <- ggplot(ggd1,
+                       horiz = TRUE)
+
+    gg_dendo
+    
+  })
+  
+  # multivariate analysis of stats and countries -----
+  
+  output$picker_multiple_stats_clust <- renderUI({
+    
+    data_res <- copy(data_countries_lastday_all_stats())
+    
+    shinyWidgets::pickerInput(
+      inputId = "multiple_stats_clust",
+      label = NULL, 
+      choices = colnames(data_res)[-1],
+      selected = c('New cases per 1 million population',
+                   'Death rate (%)',
+                   'Total active cases per 1 million population',
+                   'Positive tests rate (%)',
+                   'Total tests per 1 million population'
+                   ),
+      multiple = T,
+      options = list(
+        `actions-box` = TRUE,
+        `multiple-separator` = " \n ",
+        style = "btn-info",
+        `live-search` = TRUE,
+        size = 8),
+    )
+    
+  })
+  
+  # select top N countries from active cases
+  
+  output$selector_top_n_countries_multi <- renderUI({
+    
+    data_res <- copy(data_countries_lastday_all_stats())
+    
+    numericInput(inputId = "top_n_countries_multi",
+                 label = "Select number of top N countries from Active cases per 1 mil. pop.:",
+                 value = 48,
+                 min = 1,
+                 max = data_res[, .N],
+                 step = 2
+                 )
+    
+  })
+  
+  # number of clusters
+  output$selector_n_clusters_multi <- renderUI({
+    
+    data_res <- copy(data_countries_lastday_all_stats())
+    
+    numericInput(inputId = "n_clusters_multi",
+                 label = "Select number of clusters:",
+                 value = 8,
+                 min = 2,
+                 max = data_res[, .N] - 1,
+                 step = 1
+                 )
+    
+  })
+  
+  # Selected data for MDS scatter plot ----
+  data_mds_scatterplot_selected <- reactive({
+    
+    shiny::req(input$multiple_stats_clust, input$top_n_countries_multi)
+    
+    data_res <- copy(data_countries_lastday_all_stats()[Population > 1e6])
+    
+    setorderv(data_res, 'Total active cases per 1 million population', -1)
+    
+    data_res <- copy(data_res[, .SD,
+                              .SDcols = c("Country",
+                                          input$multiple_stats_clust)
+                              ])
+    
+    data_res_subset <- copy(na.omit(data_res)[1:input$top_n_countries_multi])
+    
+    if (sum(grepl(pattern = "Slovakia", x = data_res_subset$Country)) == 0) {
+      
+      data_res_subset <- rbindlist(list(data_res_subset,
+                                        data_res[.("Slovakia"), on = .(Country)]
+                                        )
+                                   )
+      
+    }
+    
+    data_res_subset
+    
+  })
+  
+  # Plotly scatter plot 2D MDS ----
+  
+  output$plotly_scatterplot_mds_country_stats <- renderPlotly({
+    
+    data_res <- copy(data_mds_scatterplot_selected())
+    
+    d <- dist(scale(data.matrix(data_res[, .SD,
+                                         .SDcols = c(input$multiple_stats_clust)
+                                         ]),
+                    center = T, scale = T)) #
+    
+    mds_classical <- cmdscale(d, eig = FALSE, k = 2) # very slow, be aware!
+    # ds_nonmetric <- isoMDS(d, k = 2)$points
+    
+    data_plot <- data.table(mds_classical,
+                            Country = data_res$Country
+                            )
+    
+    fig <- plot_ly(data_plot,
+                   x = ~get("V1"),
+                   y = ~get("V2"),
+                   type = 'scatter',
+                   mode = 'text',
+                   text = ~Country,
+                   alpha = 0.6,
+                   textposition = 'middle right',
+                   textfont = list(color = '#000000', size = 14)
+                   )
+    
+    fig <- fig %>% layout(
+      xaxis = list(title = NA,
+                   zeroline = F,
+                   range = c(data_plot[, min(V1)*1.01],
+                             data_plot[, max(V1)*1.8])
+                   ),
+      yaxis = list(title = NA,
+                   zeroline = F,
+                   range = c(data_plot[, min(V2)*1.15],
+                             data_plot[, max(V2)*1.15])
+                   )
+    )
+    
+    fig
+    
+  })
+  
+  # clustering multi-dimensional data ----
+  
+  output$clust_res_multidim <- renderPlot({
+    
+    shiny::req(input$n_clusters_multi)
+    
+    data_res <- copy(data_mds_scatterplot_selected())
+    
+    k <- input$n_clusters_multi
+    
+    data_res_norm <- scale(data.matrix(data_res[, .SD,
+                                                .SDcols = c(input$multiple_stats_clust)
+                                                ]),
+                           center = T, scale = T)
+    
+    hie_complete <- hclust(dist(data_res_norm),
+                           method = "ward.D2")
+    
+    dend <- as.dendrogram(hie_complete)
+    
+    dend <- dend %>%
+      color_branches(k = k) %>%
+      color_labels(k = k) %>%
+      set("branches_lwd", 1) %>% 
+      set("labels", data_res[, Country]) %>%
+      set("labels_cex", 0.9)
+    
+    ggd1 <- as.ggdend(rev(dend))
+    
+    gg_dendo <- ggplot(ggd1,
+                       horiz = TRUE)
+    
+    gg_dendo
     
   })
   
