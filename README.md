@@ -1,6 +1,5 @@
----
-title: "CoronaDash"
----
+
+# CoronaDash
 
 
 #### [**Shinydashboard online application is available on this link**](https://petolau.shinyapps.io/coronadash/)
