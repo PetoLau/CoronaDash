@@ -216,7 +216,7 @@ body <- dashboardBody(
                   uiOutput("picker_stat_scatterplot_x"),
                   uiOutput("picker_stat_scatterplot_y")
                   ),
-              box(title = span(icon("balance-scale"), " Select parameters for analysis/ clustering"),
+              box(title = span(icon("sliders-h"), " Select parameters for analysis/ clustering"),
                   solidHeader = F,
                   collapsible = F, width = 5,
                   uiOutput("selector_top_n_countries_x"),
@@ -230,7 +230,7 @@ body <- dashboardBody(
                     collapsible = F, width = 6,
                     plotlyOutput("plotly_scatterplot_2d_country_stat") %>% withSpinner(color = "#5bc0de")
                 ),
-                box(title = span(icon("chart-area"), " Dendogram of clustered countries based on similarities of selected statistics"),
+                box(title = span(icon("tree"), " Dendogram of clustered countries based on similarities of selected statistics"),
                     footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
                     solidHeader = F,
                     collapsible = F, width = 6,
@@ -243,7 +243,7 @@ body <- dashboardBody(
                   collapsible = F, width = 9,
                   uiOutput("picker_multiple_stats_clust")
               ),
-              box(title = span(icon("balance-scale"), " Select parameters for analysis/ clustering"),
+              box(title = span(icon("sliders-h"), " Select parameters for analysis/ clustering"),
                   solidHeader = F,
                   collapsible = F, width = 3,
                   uiOutput("selector_top_n_countries_multi"),
@@ -257,7 +257,7 @@ body <- dashboardBody(
                   collapsible = F, width = 6,
                   plotlyOutput("plotly_scatterplot_mds_country_stats") %>% withSpinner(color = "#5bc0de")
               ),
-              box(title = span(icon("chart-area"), " Dendogram of clustered countries based on similarities of selected statistics"),
+              box(title = span(icon("tree"), " Dendogram of clustered countries based on similarities of selected statistics"),
                   footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
                   solidHeader = F,
                   collapsible = F, width = 6,
