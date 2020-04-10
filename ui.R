@@ -257,13 +257,13 @@ body <- dashboardBody(
                   MDS - Multidimensional scaling - parametric.",
                   solidHeader = F,
                   collapsible = F, width = 6,
-                  plotOutput("plot_scatterplot_mds_country_stats") %>% withSpinner(color = "#5bc0de")
+                  plotOutput("plot_scatterplot_mds_country_stats", height = "72vh") %>% withSpinner(color = "#5bc0de")
               ),
               box(title = span(icon("tree"), " Dendogram of clustered countries based on similarities of selected statistics"),
                   footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
                   solidHeader = F,
                   collapsible = F, width = 6,
-                  plotOutput("clust_res_multidim", height = "78vh") %>% withSpinner(color = "#5bc0de")
+                  plotOutput("clust_res_multidim", height = "75vh") %>% withSpinner(color = "#5bc0de")
               )
             )
     ),
