@@ -63,22 +63,6 @@ body <- dashboardBody(
   
   chooseSliderSkin("Flat"),
   
-  tags$head(
-    tags$style(
-      HTML(
-        ".checkboxgroup-inline {
-                    margin-left: 0px;
-                    margin-right: 10px;
-          }
-         .checkboxgroup-inline+.checkboxgroup-inline {
-                    margin-left: 0px;
-                    margin-right: 10px;
-          }
-        "
-      )
-    )
-  ),
-  
   tags$style(type="text/css", css),
   
   tabItems(
@@ -263,6 +247,7 @@ body <- dashboardBody(
                   footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
                   solidHeader = F,
                   collapsible = F, width = 6,
+                  uiOutput("dropdown_clustering_crit"),
                   plotOutput("clust_res_multidim", height = "75vh") %>% withSpinner(color = "#5bc0de")
               )
             )

@@ -1,5 +1,5 @@
 # Hierarchical clustering with exact n. of clusters ----
-hie_clus <- function(data, k, cols) {
+hie_clus <- function(data, k, cols, crit) {
   
   # data normalization
   data_res_norm <- scale(data.matrix(data[, .SD,
@@ -9,7 +9,7 @@ hie_clus <- function(data, k, cols) {
   
   # Euclidean dist. and Ward criterion
   hie_res <- hclust(dist(data_res_norm),
-                    method = "ward.D2")
+                    method = crit)
 
   # Cut the tree to k clusters
   data_clust <- dendextend::cutree(hie_res,

@@ -4,7 +4,6 @@ function(input, output, session) {
   # Load scripts/modules -----
   
   # reading data
-  # source("01_scripts/read_data.R")
   source("01_scripts/read_data_cssegis.R")
   source("01_scripts/aggregate_data.R")
   source("01_scripts/read_populations.R")
@@ -1185,18 +1184,48 @@ function(input, output, session) {
     
   })
   
+  # Clustering criterion
+  output$dropdown_clustering_crit <- renderUI({
+    
+    shinyWidgets::dropdown(
+      
+      # tags$p("Choose criterion for hierarchical clustering:"),
+      
+      shinyWidgets::pickerInput(inputId = "clust_crit",
+                                label = "Choose criterion for hierarchical clustering:",
+                                choices = c("ward.D", "ward.D2", "single", "complete", "average"),
+                                selected = "ward.D2",
+                                multiple = F,
+                                options = list(
+                                  style = "btn-info",
+                                  size = 3
+                                  )
+                                ),
+      
+      style = "unite", icon = icon("gear"),
+      status = "primary", width = "300px",
+      animate = shinyWidgets::animateOptions(
+        enter = animations$fading_entrances$fadeInLeftBig,
+        exit = animations$fading_exits$fadeOutRightBig
+      ),
+      tooltip = tooltipOptions(title = "Click to choose other clustering criterion!")
+    )
+    
+  })
+  
   # clustering results ----
   clustering_results <- reactive({
     
     data_res <- copy(data_mds_scatterplot_selected())
     
-    shiny::req(input$n_clusters_multi)
+    shiny::req(input$n_clusters_multi, input$clust_crit)
     
     k <- input$n_clusters_multi
     
     clust_res <- hie_clus(data = data_res,
                           k = k,
-                          cols = input$multiple_stats_clust)
+                          cols = input$multiple_stats_clust,
+                          crit = input$clust_crit)
     
     clust_res
     
