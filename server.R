@@ -1237,17 +1237,19 @@ function(input, output, session) {
       gg_scatter <- ggplot(data_res, aes(x = get(input$multiple_stats_clust[1]),
                                          y = get(input$multiple_stats_clust[2]),
                                          label = Country,
-                                         color = Cluster)) +
-        geom_text_repel(alpha = 0.95,
-                        segment.alpha = 0.35,
-                        label.r = 0.1,
-                        box.padding = 0.25,
-                        label.padding = 0.3,
-                        label.size = 0.35,
-                        max.iter = 2500) +
+                                         color = as.factor(Cluster))) +
+        geom_label_repel(alpha = 0.95,
+                         segment.alpha = 0.35,
+                         label.r = 0.1,
+                         box.padding = 0.25,
+                         label.padding = 0.3,
+                         label.size = 0.35,
+                         max.iter = 2500
+                         ) +
         scale_color_manual(values = clust_res$clusters_colors$Color) +
         labs(x = input$multiple_stats_clust[1],
              y = input$multiple_stats_clust[2]) +
+        guides(color = FALSE) +
         theme_my
       
       gg_scatter
