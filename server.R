@@ -1072,186 +1072,161 @@ function(input, output, session) {
   
   # columns selector - x and y ----
   
-  output$picker_stat_scatterplot_x <- renderUI({
-    
-    data_res <- copy(data_countries_lastday_all_stats())
-    
-    shinyWidgets::pickerInput(
-      inputId = "stat_scatterplot_x",
-      label = "x axis:", 
-      choices = colnames(data_res)[-c(1)],
-      selected = 'Total active cases per 1 million population',
-      multiple = F,
-      options = list(
-        # `actions-box` = TRUE,
-        style = "btn-info",
-        `live-search` = TRUE,
-        size = 8),
-    )
-    
-  })
-  
-  output$picker_stat_scatterplot_y <- renderUI({
-    
-    shiny::req(input$stat_scatterplot_x)
-    
-    data_res <- copy(data_countries_lastday_all_stats())
-    
-    data_columns <- colnames(data_res)[-1]
-    
-    data_columns <- data_columns[!data_columns %in% input$stat_scatterplot_x]
-    
-    shinyWidgets::pickerInput(
-      inputId = "stat_scatterplot_y",
-      label = "y axis:", 
-      choices = data_columns,
-      selected = 'Positive tests rate (%)',
-      multiple = F,
-      options = list(
-        # `actions-box` = TRUE,
-        style = "btn-info",
-        `live-search` = TRUE,
-        size = 8),
-    )
-    
-  })
-  
-  # select top N countries from selected x stat
-  
-  output$selector_top_n_countries_x <- renderUI({
-    
-    data_res <- copy(data_countries_lastday_all_stats())
-    
-    numericInput(inputId = "top_n_countries_x",
-                 label = "Select number of top N countries from selected x statistic:",
-                 value = 48,
-                 min = 1,
-                 max = data_res[, .N],
-                 step = 2
-                 )
-    
-  })
-  
-  # Selected data for scatter plot ----
-  data_2d_scatterplot_selected <- reactive({
-    
-    shiny::req(input$stat_scatterplot_x, input$stat_scatterplot_y, input$top_n_countries_x)
-    
-    data_res <- copy(data_countries_lastday_all_stats()[Population > 1e6])
-    
-    data_res <- copy(data_res[, .SD,
-                              .SDcols = c("Country",
-                                          input$stat_scatterplot_x,
-                                          input$stat_scatterplot_y)
-                              ])
-
-    setorderv(data_res, input$stat_scatterplot_x, -1)
-    
-    data_res_subset <- copy(na.omit(data_res)[1:input$top_n_countries_x])
-    
-    if (sum(grepl(pattern = "Slovakia", x = data_res_subset$Country)) == 0) {
-      
-      data_res_subset <- rbindlist(list(data_res_subset,
-                                        data_res[.("Slovakia"), on = .(Country)]
-                                        )
-                                   )
-      
-    }
-    
-    data_res_subset
-    
-  })
-  
-  # Plotly scatter plot 2D ----
-  output$plotly_scatterplot_2d_country_stat <- renderPlotly({
-    
-    data_res <- copy(data_2d_scatterplot_selected())
-    
-    fig <- plot_ly(data_res,
-                   x = ~get(input$stat_scatterplot_x),
-                   y = ~get(input$stat_scatterplot_y),
-                   type = 'scatter',
-                   mode = 'text',
-                   text = ~Country,
-                   alpha = 0.75,
-                   textposition = 'middle right',
-                   textfont = list(color = '#000000', size = 14))
-    fig <- fig %>% layout(
-                          xaxis = list(title = input$stat_scatterplot_x,
-                                       zeroline = TRUE),
-                          yaxis = list(title = input$stat_scatterplot_y,
-                                       zeroline = TRUE)
-                          )
-    
-    fig
-    
-  })
+  # output$picker_stat_scatterplot_x <- renderUI({
+  #   
+  #   data_res <- copy(data_countries_lastday_all_stats())
+  #   
+  #   shinyWidgets::pickerInput(
+  #     inputId = "stat_scatterplot_x",
+  #     label = "x axis:", 
+  #     choices = colnames(data_res)[-c(1)],
+  #     selected = 'Total active cases per 1 million population',
+  #     multiple = F,
+  #     options = list(
+  #       # `actions-box` = TRUE,
+  #       style = "btn-info",
+  #       `live-search` = TRUE,
+  #       size = 8),
+  #   )
+  #   
+  # })
+  # 
+  # output$picker_stat_scatterplot_y <- renderUI({
+  #   
+  #   shiny::req(input$stat_scatterplot_x)
+  #   
+  #   data_res <- copy(data_countries_lastday_all_stats())
+  #   
+  #   data_columns <- colnames(data_res)[-1]
+  #   
+  #   data_columns <- data_columns[!data_columns %in% input$stat_scatterplot_x]
+  #   
+  #   shinyWidgets::pickerInput(
+  #     inputId = "stat_scatterplot_y",
+  #     label = "y axis:", 
+  #     choices = data_columns,
+  #     selected = 'Positive tests rate (%)',
+  #     multiple = F,
+  #     options = list(
+  #       # `actions-box` = TRUE,
+  #       style = "btn-info",
+  #       `live-search` = TRUE,
+  #       size = 8),
+  #   )
+  #   
+  # })
+  # 
+  # # select top N countries from selected x stat
+  # 
+  # output$selector_top_n_countries_x <- renderUI({
+  #   
+  #   data_res <- copy(data_countries_lastday_all_stats())
+  #   
+  #   numericInput(inputId = "top_n_countries_x",
+  #                label = "Select number of top N countries from selected x statistic:",
+  #                value = 48,
+  #                min = 1,
+  #                max = data_res[, .N],
+  #                step = 2
+  #                )
+  #   
+  # })
+  # 
+  # # Selected data for scatter plot ----
+  # data_2d_scatterplot_selected <- reactive({
+  #   
+  #   shiny::req(input$stat_scatterplot_x, input$stat_scatterplot_y, input$top_n_countries_x)
+  #   
+  #   data_res <- copy(data_countries_lastday_all_stats()[Population > 1e6])
+  #   
+  #   data_res <- copy(data_res[, .SD,
+  #                             .SDcols = c("Country",
+  #                                         input$stat_scatterplot_x,
+  #                                         input$stat_scatterplot_y)
+  #                             ])
+  # 
+  #   setorderv(data_res, input$stat_scatterplot_x, -1)
+  #   
+  #   data_res_subset <- copy(na.omit(data_res)[1:input$top_n_countries_x])
+  #   
+  #   if (sum(grepl(pattern = "Slovakia", x = data_res_subset$Country)) == 0) {
+  #     
+  #     data_res_subset <- rbindlist(list(data_res_subset,
+  #                                       data_res[.("Slovakia"), on = .(Country)]
+  #                                       )
+  #                                  )
+  #     
+  #   }
+  #   
+  #   data_res_subset
+  #   
+  # })
   
   # clustering 2d data ----
   
-  output$selector_n_clusters <- renderUI({
-    
-    data_res <- copy(data_countries_lastday_all_stats())
-    
-    numericInput(inputId = "n_clusters",
-                 label = "Select number of clusters:",
-                 value = 7,
-                 min = 2,
-                 max = data_res[, .N] - 1,
-                 step = 1
-    )
-    
-  })
-  
-  output$clust_res_2d <- renderPlot({
-    
-    shiny::req(input$n_clusters)
-    
-    data_res <- copy(data_2d_scatterplot_selected())
-    
-    k <- input$n_clusters
-    
-    data_res_norm <- scale(data.matrix(data_res[, .SD,
-                                                .SDcols = c(input$stat_scatterplot_x,
-                                                            input$stat_scatterplot_y)
-                                          ]),
-                           center = T, scale = T)
-    
-    hie_complete <- hclust(dist(data_res_norm),
-                           method = "ward.D2")
-    
-    dend <- as.dendrogram(hie_complete)
-    
-    # data_clust <- dendextend::cutree(hie_complete,
-    #                                  k = k)
-    
-    # print(data_clust)
-    
-    # data_clust_colors <- data.table(Cluster = 1:k,
-    #                                 Color = RColorBrewer::brewer.pal(k, name = "Set2"))
-    
-    # data_clust_merge <- data.table(Cluster = data_clust)
-    # data_clust_merge[data_clust_colors,
-    #                  on = .(Cluster),
-    #                  Color := i.Color]
-    
-    # print(data_clust_merge)
-    
-    dend <- dend %>%
-      color_branches(k = k) %>%
-      color_labels(k = k) %>%
-      set("branches_lwd", 1) %>% 
-      set("labels", data_res[, Country]) %>%
-      set("labels_cex", 0.9)
-    
-    ggd1 <- as.ggdend(rev(dend))
-    
-    gg_dendo <- ggplot(ggd1,
-                       horiz = TRUE)
-
-    gg_dendo
-    
-  })
+  # output$selector_n_clusters <- renderUI({
+  #   
+  #   data_res <- copy(data_countries_lastday_all_stats())
+  #   
+  #   numericInput(inputId = "n_clusters",
+  #                label = "Select number of clusters:",
+  #                value = 7,
+  #                min = 2,
+  #                max = data_res[, .N] - 1,
+  #                step = 1
+  #   )
+  #   
+  # })
+  # 
+  # output$clust_res_2d <- renderPlot({
+  #   
+  #   shiny::req(input$n_clusters)
+  #   
+  #   data_res <- copy(data_2d_scatterplot_selected())
+  #   
+  #   k <- input$n_clusters
+  #   
+  #   data_res_norm <- scale(data.matrix(data_res[, .SD,
+  #                                               .SDcols = c(input$stat_scatterplot_x,
+  #                                                           input$stat_scatterplot_y)
+  #                                         ]),
+  #                          center = T, scale = T)
+  #   
+  #   hie_complete <- hclust(dist(data_res_norm),
+  #                          method = "ward.D2")
+  #   
+  #   dend <- as.dendrogram(hie_complete)
+  #   
+  #   # data_clust <- dendextend::cutree(hie_complete,
+  #   #                                  k = k)
+  #   
+  #   # print(data_clust)
+  #   
+  #   # data_clust_colors <- data.table(Cluster = 1:k,
+  #   #                                 Color = RColorBrewer::brewer.pal(k, name = "Set2"))
+  #   
+  #   # data_clust_merge <- data.table(Cluster = data_clust)
+  #   # data_clust_merge[data_clust_colors,
+  #   #                  on = .(Cluster),
+  #   #                  Color := i.Color]
+  #   
+  #   # print(data_clust_merge)
+  #   
+  #   dend <- dend %>%
+  #     color_branches(k = k) %>%
+  #     color_labels(k = k) %>%
+  #     set("branches_lwd", 1) %>% 
+  #     set("labels", data_res[, Country]) %>%
+  #     set("labels_cex", 0.9)
+  #   
+  #   ggd1 <- as.ggdend(rev(dend))
+  #   
+  #   gg_dendo <- ggplot(ggd1,
+  #                      horiz = TRUE)
+  # 
+  #   gg_dendo
+  #   
+  # })
   
   # multivariate analysis of stats and countries -----
   
@@ -1263,10 +1238,10 @@ function(input, output, session) {
       inputId = "multiple_stats_clust",
       label = NULL, 
       choices = colnames(data_res)[-1],
-      selected = c('New cases per 1 million population',
+      selected = c('Total active cases per 1 million population',
+                   'New cases per 1 million population',
+                   'New deaths per 1 million population',
                    'Death rate (%)',
-                   'Total active cases per 1 million population',
-                   'Positive tests rate (%)',
                    'Total tests per 1 million population'
                    ),
       multiple = T,
@@ -1276,6 +1251,28 @@ function(input, output, session) {
         style = "btn-info",
         `live-search` = TRUE,
         size = 8),
+      )
+    
+  })
+  
+  output$picker_sort_column <- renderUI({
+    
+    shiny::req(input$multiple_stats_clust)
+    
+    pickers <- input$multiple_stats_clust
+    
+    shinyWidgets::pickerInput(
+      inputId = "sort_column",
+      label = "Data will be sorted by this statistic:",
+      choices = pickers,
+      selected = pickers[1],
+      multiple = F,
+      options = list(
+        # `actions-box` = TRUE,
+        # `multiple-separator` = " \n ",
+        style = "btn-info",
+        `live-search` = TRUE,
+        size = 5),
     )
     
   })
@@ -1284,10 +1281,12 @@ function(input, output, session) {
   
   output$selector_top_n_countries_multi <- renderUI({
     
+    shiny::req(input$sort_column)
+    
     data_res <- copy(data_countries_lastday_all_stats())
     
     numericInput(inputId = "top_n_countries_multi",
-                 label = "Select number of top N countries from Active cases per 1 mil. pop.:",
+                 label = paste0("Select number of top N countries from ", input$sort_column, ":"),
                  value = 48,
                  min = 1,
                  max = data_res[, .N],
@@ -1311,14 +1310,14 @@ function(input, output, session) {
     
   })
   
-  # Selected data for MDS scatter plot ----
+  # Selected data for 2d/MDS scatter plot ----
   data_mds_scatterplot_selected <- reactive({
     
-    shiny::req(input$multiple_stats_clust, input$top_n_countries_multi)
+    shiny::req(input$multiple_stats_clust, input$sort_column, input$top_n_countries_multi)
     
     data_res <- copy(data_countries_lastday_all_stats()[Population > 1e6])
     
-    setorderv(data_res, 'Total active cases per 1 million population', -1)
+    setorderv(data_res, input$sort_column, -1)
     
     data_res <- copy(data_res[, .SD,
                               .SDcols = c("Country",
@@ -1340,49 +1339,151 @@ function(input, output, session) {
     
   })
   
-  # Plotly scatter plot 2D MDS ----
+  # Plot scatter plot 2D or 2D MDS ----
+
+  # output$plotly_scatterplot_2d_country_stat <- renderPlot({
+  #   
+  #   data_res <- copy(data_2d_scatterplot_selected())
+  #   
+  #   theme_my <- theme(panel.border = element_rect(fill = NA,
+  #                                                 colour = "grey10"),
+  #                     panel.background = element_blank(),
+  #                     panel.grid.minor = element_line(colour = "grey85"),
+  #                     panel.grid.major = element_line(colour = "grey85"),
+  #                     panel.grid.major.x = element_line(colour = "grey85"),
+  #                     axis.text = element_text(size = 13, face = "bold"),
+  #                     axis.title = element_text(size = 14, face = "bold"),
+  #                     plot.title = element_text(size = 16, face = "bold"),
+  #                     strip.text = element_text(size = 16, face = "bold"),
+  #                     strip.background = element_rect(colour = "black"),
+  #                     legend.text = element_text(size = 15),
+  #                     legend.title = element_text(size = 16, face = "bold"),
+  #                     legend.background = element_rect(fill = "white"),
+  #                     legend.key = element_rect(fill = "white"),
+  #                     legend.position="bottom")
+  #   
+  #   gg_2d <- ggplot(data_res, aes(x = get(input$stat_scatterplot_x),
+  #                                 y = get(input$stat_scatterplot_y),
+  #                                 label = Country)) +
+  #     geom_text_repel(alpha = 0.75) +
+  #     labs(x = input$stat_scatterplot_x,
+  #          y = input$stat_scatterplot_y) +
+  #     theme_my
+  #   
+  #   gg_2d
+  #   
+  #   # fig <- plot_ly(data_res,
+  #   #                x = ~get(input$stat_scatterplot_x),
+  #   #                y = ~get(input$stat_scatterplot_y),
+  #   #                type = 'scatter',
+  #   #                mode = 'text',
+  #   #                text = ~Country,
+  #   #                alpha = 0.75,
+  #   #                textposition = 'middle right',
+  #   #                textfont = list(color = '#000000', size = 14))
+  #   # fig <- fig %>% layout(
+  #   #                       xaxis = list(title = input$stat_scatterplot_x,
+  #   #                                    zeroline = TRUE),
+  #   #                       yaxis = list(title = input$stat_scatterplot_y,
+  #   #                                    zeroline = TRUE)
+  #   #                       )
+  #   # 
+  #   # fig
+  # 
+  # })
   
-  output$plotly_scatterplot_mds_country_stats <- renderPlotly({
+  output$plot_scatterplot_mds_country_stats <- renderPlot({
     
     data_res <- copy(data_mds_scatterplot_selected())
     
-    d <- dist(scale(data.matrix(data_res[, .SD,
-                                         .SDcols = c(input$multiple_stats_clust)
-                                         ]),
-                    center = T, scale = T)) #
+    theme_my <- theme(panel.border = element_rect(fill = NA,
+                                                  colour = "grey10"),
+                      panel.background = element_blank(),
+                      panel.grid.minor = element_line(colour = "grey85"),
+                      panel.grid.major = element_line(colour = "grey85"),
+                      panel.grid.major.x = element_line(colour = "grey85"),
+                      axis.text = element_text(size = 13, face = "bold"),
+                      axis.title = element_text(size = 14, face = "bold"),
+                      plot.title = element_text(size = 16, face = "bold"),
+                      strip.text = element_text(size = 16, face = "bold"),
+                      strip.background = element_rect(colour = "black"),
+                      legend.text = element_text(size = 15),
+                      legend.title = element_text(size = 16, face = "bold"),
+                      legend.background = element_rect(fill = "white"),
+                      legend.key = element_rect(fill = "white"),
+                      legend.position="bottom"
+                      )
     
-    mds_classical <- cmdscale(d, eig = FALSE, k = 2) # very slow, be aware!
-    # ds_nonmetric <- isoMDS(d, k = 2)$points
-    
-    data_plot <- data.table(mds_classical,
-                            Country = data_res$Country
-                            )
-    
-    fig <- plot_ly(data_plot,
-                   x = ~get("V1"),
-                   y = ~get("V2"),
-                   type = 'scatter',
-                   mode = 'text',
-                   text = ~Country,
-                   alpha = 0.6,
-                   textposition = 'middle right',
-                   textfont = list(color = '#000000', size = 14)
-                   )
-    
-    fig <- fig %>% layout(
-      xaxis = list(title = NA,
-                   zeroline = F,
-                   range = c(data_plot[, min(V1)*1.01],
-                             data_plot[, max(V1)*1.8])
-                   ),
-      yaxis = list(title = NA,
-                   zeroline = F,
-                   range = c(data_plot[, min(V2)*1.15],
-                             data_plot[, max(V2)*1.15])
-                   )
-    )
-    
-    fig
+    if (length(input$multiple_stats_clust) == 2) {
+      
+      gg_scatter <- ggplot(data_res, aes(x = get(input$multiple_stats_clust[1]),
+                                         y = get(input$multiple_stats_clust[2]),
+                                         label = Country)) +
+        geom_text_repel(alpha = 0.75) +
+        labs(x = input$multiple_stats_clust[1],
+             y = input$multiple_stats_clust[2]) +
+        theme_my
+      
+      gg_scatter
+      
+    } else if (length(input$multiple_stats_clust) > 2) {
+      
+      d <- dist(scale(data.matrix(data_res[, .SD,
+                                           .SDcols = c(input$multiple_stats_clust)
+                                           ]),
+                      center = T, scale = T)) #
+      
+      mds_classical <- cmdscale(d, eig = FALSE, k = 2) # very slow, be aware!
+      # ds_nonmetric <- isoMDS(d, k = 2)$points
+      
+      data_plot <- data.table(mds_classical,
+                              Country = data_res$Country)
+      
+      gg_scatter <- ggplot(data_plot, aes(x = get("V1"),
+                                          y = get("V2"),
+                                          label = Country)) +
+        geom_label_repel(
+                        alpha = 0.95,
+                        segment.alpha = 0.35,
+                        label.r = 0.1,
+                        box.padding = 0.25,
+                        label.padding = 0.3,
+                        label.size = 0.35,
+                        max.iter = 2500) +
+        labs(x = NULL,
+             y = NULL) +
+        theme_my
+      
+      gg_scatter
+      
+      
+      # fig <- plot_ly(data_plot,
+      #                x = ~get("V1"),
+      #                y = ~get("V2"),
+      #                type = 'scatter',
+      #                mode = 'text',
+      #                text = ~Country,
+      #                alpha = 0.6,
+      #                textposition = 'middle right',
+      #                textfont = list(color = '#000000', size = 14)
+      # )
+      # 
+      # fig <- fig %>% layout(
+      #   xaxis = list(title = NA,
+      #                zeroline = F,
+      #                range = c(data_plot[, min(V1)*1.01],
+      #                          data_plot[, max(V1)*1.8])
+      #   ),
+      #   yaxis = list(title = NA,
+      #                zeroline = F,
+      #                range = c(data_plot[, min(V2)*1.15],
+      #                          data_plot[, max(V2)*1.15])
+      #   )
+      # )
+      
+      # fig
+      
+    }
     
   })
   

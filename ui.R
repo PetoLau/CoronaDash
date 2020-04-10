@@ -209,39 +209,40 @@ body <- dashboardBody(
               )
             ),
     tabItem(tabName = "analysisTab",
-            fluidRow(
-              box(title = span(icon("balance-scale"), " Select statistics to compare countries"),
-                  solidHeader = F,
-                  collapsible = F, width = 5,
-                  uiOutput("picker_stat_scatterplot_x"),
-                  uiOutput("picker_stat_scatterplot_y")
-                  ),
-              box(title = span(icon("sliders-h"), " Select parameters for analysis/ clustering"),
-                  solidHeader = F,
-                  collapsible = F, width = 5,
-                  uiOutput("selector_top_n_countries_x"),
-                  uiOutput("selector_n_clusters"),
-                  )
-              ),
-              fluidRow(
-                box(title = span(icon("chart-area"), " Scatter plot of countries for selected statistics"),
-                    footer = "Zoom in for cleaner view.",
-                    solidHeader = F,
-                    collapsible = F, width = 6,
-                    plotlyOutput("plotly_scatterplot_2d_country_stat") %>% withSpinner(color = "#5bc0de")
-                ),
-                box(title = span(icon("tree"), " Dendogram of clustered countries based on similarities of selected statistics"),
-                    footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
-                    solidHeader = F,
-                    collapsible = F, width = 6,
-                    plotOutput("clust_res_2d", height = "75vh") %>% withSpinner(color = "#5bc0de")
-                )
-            ),
+            # fluidRow(
+            #   box(title = span(icon("balance-scale"), " Select statistics to compare countries"),
+            #       solidHeader = F,
+            #       collapsible = F, width = 5,
+            #       uiOutput("picker_stat_scatterplot_x"),
+            #       uiOutput("picker_stat_scatterplot_y")
+            #       ),
+            #   box(title = span(icon("sliders-h"), " Select parameters for analysis/ clustering"),
+            #       solidHeader = F,
+            #       collapsible = F, width = 5,
+            #       uiOutput("selector_top_n_countries_x"),
+            #       uiOutput("selector_n_clusters"),
+            #       )
+            #   ),
+            #   fluidRow(
+            #     box(title = span(icon("chart-area"), " Scatter plot of countries for selected statistics"),
+            #         footer = "Zoom in for cleaner view.",
+            #         solidHeader = F,
+            #         collapsible = F, width = 6,
+            #         plotOutput("plotly_scatterplot_2d_country_stat") %>% withSpinner(color = "#5bc0de")
+            #     ),
+            #     box(title = span(icon("tree"), " Dendogram of clustered countries based on similarities of selected statistics"),
+            #         footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
+            #         solidHeader = F,
+            #         collapsible = F, width = 6,
+            #         plotOutput("clust_res_2d", height = "75vh") %>% withSpinner(color = "#5bc0de")
+            #     )
+            # ),
             fluidRow(
               box(title = span(icon("balance-scale"), " Select multiple statistics for clustering countries based on these data"),
                   solidHeader = F,
                   collapsible = F, width = 9,
-                  uiOutput("picker_multiple_stats_clust")
+                  uiOutput("picker_multiple_stats_clust"),
+                  uiOutput("picker_sort_column")
               ),
               box(title = span(icon("sliders-h"), " Select parameters for analysis/ clustering"),
                   solidHeader = F,
@@ -251,17 +252,18 @@ body <- dashboardBody(
                   )
             ),
             fluidRow(
-              box(title = span(icon("chart-area"), " MDS-Scatter plot of countries for selected statistics"),
-                  footer = "Zoom in for cleaner view. MDS - Multidimensional scaling - parametric.",
+              box(title = span(icon("chart-area"), " 2D/MDS Scatter plot of countries for selected statistics"),
+                  footer = "If a number of statistics is equal to 2, then scatter plot is used without MDS. If n > 2 then MDS is always used.
+                  MDS - Multidimensional scaling - parametric.",
                   solidHeader = F,
                   collapsible = F, width = 6,
-                  plotlyOutput("plotly_scatterplot_mds_country_stats") %>% withSpinner(color = "#5bc0de")
+                  plotOutput("plot_scatterplot_mds_country_stats") %>% withSpinner(color = "#5bc0de")
               ),
               box(title = span(icon("tree"), " Dendogram of clustered countries based on similarities of selected statistics"),
                   footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
                   solidHeader = F,
                   collapsible = F, width = 6,
-                  plotOutput("clust_res_multidim", height = "75vh") %>% withSpinner(color = "#5bc0de")
+                  plotOutput("clust_res_multidim", height = "78vh") %>% withSpinner(color = "#5bc0de")
               )
             )
     ),
