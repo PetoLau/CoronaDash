@@ -11,6 +11,9 @@ function(input, output, session) {
   
   # forecasting
   source("01_scripts/forecasting.R")
+  
+  # clustering
+  source("01_scripts/clustering.R")
  
   # menu -----
   output$Side_dash <- renderMenu({
@@ -1038,7 +1041,7 @@ function(input, output, session) {
     
   })
   
-  ### Scatter plot - clustering comparison of countries -----
+  ### Scatter plot + dendogram - clustering comparison of countries -----
   
   # Compute last available stats for countries
   data_countries_lastday_all_stats <- reactive({
@@ -1051,6 +1054,7 @@ function(input, output, session) {
                                                       'Active cases' = Active_cases_cumsum,
                                                       'Total tests' = TotalTests,
                                                       'New cases' = Cases,
+                                                      'New deaths' = Deaths,
                                                       'New cases per 1 million population' = ceiling((Cases / Population) * 1e6),
                                                       'New deaths per 1 million population' = ceiling((Deaths / Population) * 1e6),
                                                       'New recovered cases per 1 million population' = ceiling((Recovered / Population) * 1e6),
@@ -1069,164 +1073,6 @@ function(input, output, session) {
     data_res_latest_stats
 
   })
-  
-  # columns selector - x and y ----
-  
-  # output$picker_stat_scatterplot_x <- renderUI({
-  #   
-  #   data_res <- copy(data_countries_lastday_all_stats())
-  #   
-  #   shinyWidgets::pickerInput(
-  #     inputId = "stat_scatterplot_x",
-  #     label = "x axis:", 
-  #     choices = colnames(data_res)[-c(1)],
-  #     selected = 'Total active cases per 1 million population',
-  #     multiple = F,
-  #     options = list(
-  #       # `actions-box` = TRUE,
-  #       style = "btn-info",
-  #       `live-search` = TRUE,
-  #       size = 8),
-  #   )
-  #   
-  # })
-  # 
-  # output$picker_stat_scatterplot_y <- renderUI({
-  #   
-  #   shiny::req(input$stat_scatterplot_x)
-  #   
-  #   data_res <- copy(data_countries_lastday_all_stats())
-  #   
-  #   data_columns <- colnames(data_res)[-1]
-  #   
-  #   data_columns <- data_columns[!data_columns %in% input$stat_scatterplot_x]
-  #   
-  #   shinyWidgets::pickerInput(
-  #     inputId = "stat_scatterplot_y",
-  #     label = "y axis:", 
-  #     choices = data_columns,
-  #     selected = 'Positive tests rate (%)',
-  #     multiple = F,
-  #     options = list(
-  #       # `actions-box` = TRUE,
-  #       style = "btn-info",
-  #       `live-search` = TRUE,
-  #       size = 8),
-  #   )
-  #   
-  # })
-  # 
-  # # select top N countries from selected x stat
-  # 
-  # output$selector_top_n_countries_x <- renderUI({
-  #   
-  #   data_res <- copy(data_countries_lastday_all_stats())
-  #   
-  #   numericInput(inputId = "top_n_countries_x",
-  #                label = "Select number of top N countries from selected x statistic:",
-  #                value = 48,
-  #                min = 1,
-  #                max = data_res[, .N],
-  #                step = 2
-  #                )
-  #   
-  # })
-  # 
-  # # Selected data for scatter plot ----
-  # data_2d_scatterplot_selected <- reactive({
-  #   
-  #   shiny::req(input$stat_scatterplot_x, input$stat_scatterplot_y, input$top_n_countries_x)
-  #   
-  #   data_res <- copy(data_countries_lastday_all_stats()[Population > 1e6])
-  #   
-  #   data_res <- copy(data_res[, .SD,
-  #                             .SDcols = c("Country",
-  #                                         input$stat_scatterplot_x,
-  #                                         input$stat_scatterplot_y)
-  #                             ])
-  # 
-  #   setorderv(data_res, input$stat_scatterplot_x, -1)
-  #   
-  #   data_res_subset <- copy(na.omit(data_res)[1:input$top_n_countries_x])
-  #   
-  #   if (sum(grepl(pattern = "Slovakia", x = data_res_subset$Country)) == 0) {
-  #     
-  #     data_res_subset <- rbindlist(list(data_res_subset,
-  #                                       data_res[.("Slovakia"), on = .(Country)]
-  #                                       )
-  #                                  )
-  #     
-  #   }
-  #   
-  #   data_res_subset
-  #   
-  # })
-  
-  # clustering 2d data ----
-  
-  # output$selector_n_clusters <- renderUI({
-  #   
-  #   data_res <- copy(data_countries_lastday_all_stats())
-  #   
-  #   numericInput(inputId = "n_clusters",
-  #                label = "Select number of clusters:",
-  #                value = 7,
-  #                min = 2,
-  #                max = data_res[, .N] - 1,
-  #                step = 1
-  #   )
-  #   
-  # })
-  # 
-  # output$clust_res_2d <- renderPlot({
-  #   
-  #   shiny::req(input$n_clusters)
-  #   
-  #   data_res <- copy(data_2d_scatterplot_selected())
-  #   
-  #   k <- input$n_clusters
-  #   
-  #   data_res_norm <- scale(data.matrix(data_res[, .SD,
-  #                                               .SDcols = c(input$stat_scatterplot_x,
-  #                                                           input$stat_scatterplot_y)
-  #                                         ]),
-  #                          center = T, scale = T)
-  #   
-  #   hie_complete <- hclust(dist(data_res_norm),
-  #                          method = "ward.D2")
-  #   
-  #   dend <- as.dendrogram(hie_complete)
-  #   
-  #   # data_clust <- dendextend::cutree(hie_complete,
-  #   #                                  k = k)
-  #   
-  #   # print(data_clust)
-  #   
-  #   # data_clust_colors <- data.table(Cluster = 1:k,
-  #   #                                 Color = RColorBrewer::brewer.pal(k, name = "Set2"))
-  #   
-  #   # data_clust_merge <- data.table(Cluster = data_clust)
-  #   # data_clust_merge[data_clust_colors,
-  #   #                  on = .(Cluster),
-  #   #                  Color := i.Color]
-  #   
-  #   # print(data_clust_merge)
-  #   
-  #   dend <- dend %>%
-  #     color_branches(k = k) %>%
-  #     color_labels(k = k) %>%
-  #     set("branches_lwd", 1) %>% 
-  #     set("labels", data_res[, Country]) %>%
-  #     set("labels_cex", 0.9)
-  #   
-  #   ggd1 <- as.ggdend(rev(dend))
-  #   
-  #   gg_dendo <- ggplot(ggd1,
-  #                      horiz = TRUE)
-  # 
-  #   gg_dendo
-  #   
-  # })
   
   # multivariate analysis of stats and countries -----
   
@@ -1339,62 +1185,34 @@ function(input, output, session) {
     
   })
   
+  # clustering results ----
+  clustering_results <- reactive({
+    
+    data_res <- copy(data_mds_scatterplot_selected())
+    
+    shiny::req(input$n_clusters_multi)
+    
+    k <- input$n_clusters_multi
+    
+    clust_res <- hie_clus(data = data_res,
+                          k = k,
+                          cols = input$multiple_stats_clust)
+    
+    clust_res
+    
+  })
+  
   # Plot scatter plot 2D or 2D MDS ----
-
-  # output$plotly_scatterplot_2d_country_stat <- renderPlot({
-  #   
-  #   data_res <- copy(data_2d_scatterplot_selected())
-  #   
-  #   theme_my <- theme(panel.border = element_rect(fill = NA,
-  #                                                 colour = "grey10"),
-  #                     panel.background = element_blank(),
-  #                     panel.grid.minor = element_line(colour = "grey85"),
-  #                     panel.grid.major = element_line(colour = "grey85"),
-  #                     panel.grid.major.x = element_line(colour = "grey85"),
-  #                     axis.text = element_text(size = 13, face = "bold"),
-  #                     axis.title = element_text(size = 14, face = "bold"),
-  #                     plot.title = element_text(size = 16, face = "bold"),
-  #                     strip.text = element_text(size = 16, face = "bold"),
-  #                     strip.background = element_rect(colour = "black"),
-  #                     legend.text = element_text(size = 15),
-  #                     legend.title = element_text(size = 16, face = "bold"),
-  #                     legend.background = element_rect(fill = "white"),
-  #                     legend.key = element_rect(fill = "white"),
-  #                     legend.position="bottom")
-  #   
-  #   gg_2d <- ggplot(data_res, aes(x = get(input$stat_scatterplot_x),
-  #                                 y = get(input$stat_scatterplot_y),
-  #                                 label = Country)) +
-  #     geom_text_repel(alpha = 0.75) +
-  #     labs(x = input$stat_scatterplot_x,
-  #          y = input$stat_scatterplot_y) +
-  #     theme_my
-  #   
-  #   gg_2d
-  #   
-  #   # fig <- plot_ly(data_res,
-  #   #                x = ~get(input$stat_scatterplot_x),
-  #   #                y = ~get(input$stat_scatterplot_y),
-  #   #                type = 'scatter',
-  #   #                mode = 'text',
-  #   #                text = ~Country,
-  #   #                alpha = 0.75,
-  #   #                textposition = 'middle right',
-  #   #                textfont = list(color = '#000000', size = 14))
-  #   # fig <- fig %>% layout(
-  #   #                       xaxis = list(title = input$stat_scatterplot_x,
-  #   #                                    zeroline = TRUE),
-  #   #                       yaxis = list(title = input$stat_scatterplot_y,
-  #   #                                    zeroline = TRUE)
-  #   #                       )
-  #   # 
-  #   # fig
-  # 
-  # })
   
   output$plot_scatterplot_mds_country_stats <- renderPlot({
     
     data_res <- copy(data_mds_scatterplot_selected())
+    
+    clust_res <- clustering_results()
+    
+    data_res[, Cluster := clust_res$clustering$Cluster]
+    
+    # print(data_res)
     
     theme_my <- theme(panel.border = element_rect(fill = NA,
                                                   colour = "grey10"),
@@ -1418,8 +1236,16 @@ function(input, output, session) {
       
       gg_scatter <- ggplot(data_res, aes(x = get(input$multiple_stats_clust[1]),
                                          y = get(input$multiple_stats_clust[2]),
-                                         label = Country)) +
-        geom_text_repel(alpha = 0.75) +
+                                         label = Country,
+                                         color = Cluster)) +
+        geom_text_repel(alpha = 0.95,
+                        segment.alpha = 0.35,
+                        label.r = 0.1,
+                        box.padding = 0.25,
+                        label.padding = 0.3,
+                        label.size = 0.35,
+                        max.iter = 2500) +
+        scale_color_manual(values = clust_res$clusters_colors$Color) +
         labs(x = input$multiple_stats_clust[1],
              y = input$multiple_stats_clust[2]) +
         theme_my
@@ -1437,11 +1263,15 @@ function(input, output, session) {
       # ds_nonmetric <- isoMDS(d, k = 2)$points
       
       data_plot <- data.table(mds_classical,
-                              Country = data_res$Country)
+                              Country = data_res$Country,
+                              Cluster = data_res$Cluster)
       
       gg_scatter <- ggplot(data_plot, aes(x = get("V1"),
                                           y = get("V2"),
-                                          label = Country)) +
+                                          label = Country,
+                                          color = as.factor(Cluster)
+                                          )
+                           ) +
         geom_label_repel(
                         alpha = 0.95,
                         segment.alpha = 0.35,
@@ -1450,8 +1280,11 @@ function(input, output, session) {
                         label.padding = 0.3,
                         label.size = 0.35,
                         max.iter = 2500) +
+        scale_color_manual(values = clust_res$clusters_colors$Color) +
         labs(x = NULL,
-             y = NULL) +
+             y = NULL,
+             color = NULL) +
+        guides(color = FALSE) +
         theme_my
       
       gg_scatter
@@ -1487,7 +1320,7 @@ function(input, output, session) {
     
   })
   
-  # clustering multi-dimensional data ----
+  # Plot clustered multi-dimensional (or 2D) data ----
   
   output$clust_res_multidim <- renderPlot({
     
@@ -1496,22 +1329,27 @@ function(input, output, session) {
     data_res <- copy(data_mds_scatterplot_selected())
     
     k <- input$n_clusters_multi
+
+    clust_res <- clustering_results()$clust_obj
     
-    data_res_norm <- scale(data.matrix(data_res[, .SD,
-                                                .SDcols = c(input$multiple_stats_clust)
-                                                ]),
-                           center = T, scale = T)
+    data_res[, Old_order := 1:.N]
     
-    hie_complete <- hclust(dist(data_res_norm),
-                           method = "ward.D2")
+    dt_order <- data.table(Old_order = clust_res$order,
+                           New_order = 1:length(clust_res$order)
+                           )
     
-    dend <- as.dendrogram(hie_complete)
+    dt_order[data_res, on = .(Old_order), Country := i.Country]
+    setorder(dt_order, New_order)
+    
+    # print(data_res)
+    
+    dend <- as.dendrogram(clust_res)
     
     dend <- dend %>%
       color_branches(k = k) %>%
       color_labels(k = k) %>%
       set("branches_lwd", 1) %>% 
-      set("labels", data_res[, Country]) %>%
+      set("labels", dt_order[, Country]) %>%
       set("labels_cex", 0.9)
     
     ggd1 <- as.ggdend(rev(dend))
