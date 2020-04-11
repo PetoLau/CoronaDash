@@ -1351,7 +1351,7 @@ function(input, output, session) {
     
   })
   
-  # Plot clustered multi-dimensional (or 2D) data ----
+  # Plot clustering dendogram ----
   
   output$clust_res_multidim <- renderPlot({
     
@@ -1383,7 +1383,18 @@ function(input, output, session) {
       set("labels", dt_order[, Country]) %>%
       set("labels_cex", 0.9)
     
-    ggd1 <- as.ggdend(rev(dend))
+    # always show top countries ot the top of dendogram
+    where_is_first <- which(clust_res$order == 1)
+    
+    if (where_is_first >= length(clust_res$order)/2) {
+      
+      ggd1 <- as.ggdend(dend)
+      
+    } else {
+      
+      ggd1 <- as.ggdend(rev(dend))
+      
+    }
     
     gg_dendo <- ggplot(ggd1,
                        horiz = TRUE)
