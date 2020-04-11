@@ -81,6 +81,7 @@ read_data_deaths <- function() {
   
 }
 
+# read recovered data from: https://github.com/ulklc/covid19-timeseries
 read_data_recovered <- function() {
   
   # data_recovered <- fread("02_data/time_series_19-covid-Recovered.csv")

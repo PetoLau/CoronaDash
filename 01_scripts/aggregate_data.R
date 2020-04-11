@@ -1,4 +1,5 @@
-# Aggregate data - "whole" world ----
+# Aggregate data for the "whole" World ----
+# "whole" - all available countries
 
 aggregate_data <- function(data) {
   

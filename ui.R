@@ -250,6 +250,15 @@ body <- dashboardBody(
                   uiOutput("dropdown_clustering_crit"),
                   plotOutput("clust_res_multidim", height = "75vh") %>% withSpinner(color = "#5bc0de")
               )
+            ),
+            fluidRow(
+              box(title = span(icon("table"), " Clusters' members averages"),
+                  # footer = "If a number of statistics is equal to 2, then scatter plot is used without MDS. If n > 2 then MDS is always used.
+                  # MDS - Multidimensional scaling - parametric.",
+                  solidHeader = F,
+                  collapsible = F, width = 12,
+                  DTOutput("dt_clusters_averages") %>% withSpinner(color = "#5bc0de")
+              )
             )
     ),
     tabItem(tabName = "worldTab",

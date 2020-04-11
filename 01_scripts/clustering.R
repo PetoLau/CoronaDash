@@ -1,13 +1,13 @@
 # Hierarchical clustering with exact n. of clusters ----
 hie_clus <- function(data, k, cols, crit) {
   
-  # data normalization
+  # data normalization (must!)
   data_res_norm <- scale(data.matrix(data[, .SD,
                                           .SDcols = cols
                                           ]),
                          center = T, scale = T)
   
-  # Euclidean dist. and Ward criterion
+  # Euclidean dist. and Ward.D2 criterion (defaults) in hier. clust.
   hie_res <- hclust(dist(data_res_norm),
                     method = crit)
 
@@ -15,9 +15,6 @@ hie_clus <- function(data, k, cols, crit) {
   data_clust <- dendextend::cutree(hie_res,
                                    k = k)
 
-  # print(data_clust)
-  # print(hie_res$order)
-  
   # Set colors for clusters
   data_clust_colors <- data.table(Cluster = 1:k,
                                   # Color = RColorBrewer::brewer.pal(k, name = "Set2")

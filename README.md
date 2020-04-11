@@ -18,7 +18,7 @@ There isn't motivation to replace more sophisticated epidemiology models like SI
 Application provides also various **data mining/ visualization techniques** for comparing countries' COVID-19 data statistics as:
 
  * **trajectories** of cases/ deaths spread,
- * 2D/ **multidimensional clustering** of countries' data/ statistics,
+ * 2D/ **multidimensional clustering** of countries' data/ statistics - with dendogram and table of clusters averages,
  * **aggregated views** for the whole World,
  * every statistic is also computed per 1 million population for more **interpretable and comparable analysis**.
 

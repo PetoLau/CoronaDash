@@ -1086,8 +1086,8 @@ function(input, output, session) {
       selected = c('Total active cases per 1 million population',
                    'New cases per 1 million population',
                    'New deaths per 1 million population',
-                   'Death rate (%)',
-                   'Total tests per 1 million population'
+                   'Positive tests rate (%)',
+                   'Total deaths per 1 million population'
                    ),
       multiple = T,
       options = list(
@@ -1392,4 +1392,78 @@ function(input, output, session) {
     
   })
   
+  # DT of clusters averages -----
+  
+  # data preprocessing and merging
+  data_clusters_averages <- reactive({
+    
+    data_res <- copy(data_mds_scatterplot_selected())
+    
+    clust_res <- clustering_results()
+    
+    data_res[, Cluster := clust_res$clustering$Cluster]
+    
+    data_res_ave <- copy(data_res[,
+                                  as.vector(lapply(lapply(.SD, mean, na.rm = T), round, 2)),
+                                  by = .(Cluster),
+                                  .SDcols = input$multiple_stats_clust
+                                  ]
+                         ) # Compute averages of clusters
+
+    data_res_ave[data_res[,
+                          .(Countries = paste0(Country, collapse = ", ")),
+                          by = .(Cluster)],
+                 on = .(Cluster),
+                 Countries := i.Countries] # List of countries in clusters
+    
+    data_res_ave[data_res[,
+                          .(N_Countries = .N),
+                          by = .(Cluster)],
+                 on = .(Cluster),
+                 N_Countries := i.N_Countries] # Number of countries in clusters
+    
+    data_res_ave <- copy(data_res_ave[, .SD,
+                                      .SDcols = c("Cluster", "N_Countries", "Countries",
+                                                  input$multiple_stats_clust)]) # Order columns
+    
+    setorder(data_res_ave, Cluster)
+    
+    data_res_ave
+    
+  })
+  
+  # DT
+  output$dt_clusters_averages <- renderDataTable({
+    
+    data_res <- copy(data_clusters_averages())
+    
+    clust_res <- clustering_results()
+
+    DT::datatable(data_res,
+    selection = "none",
+    class = "compact",
+    # rownames = FALSE,
+    extensions = c('Buttons', 'Scroller'),
+    options = list(
+      pageLength = nrow(data_res),
+      dom = 'Bfrtip',
+      deferRender = TRUE,
+      scrollY = 250,
+      scroller = TRUE,
+      buttons = c('csv', 'excel'),
+      scrollX = TRUE,
+      columnDefs = list(list(
+        targets = 3,
+        render = JS(
+          "function(data, type, row, meta) {",
+          "return type === 'display' && data.length > 15 ?",
+          "'<span title=\"' + data + '\">' + data.substr(0, 15) + '...</span>' : data;",
+          "}")
+      ))
+    ), callback = JS('table.page(1).draw(false);')) %>% formatStyle(
+      'Cluster',
+      backgroundColor = styleEqual(data_res[, Cluster], clust_res$clusters_colors$Color)
+    )
+  })
+
 }
