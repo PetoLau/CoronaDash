@@ -192,6 +192,58 @@ body <- dashboardBody(
                   )
               )
             ),
+    tabItem(tabName = "trajectoryTab",
+            fluidRow(
+              box(title = span(icon("table"), " Select one statistic for clustering trajectories"),
+                  solidHeader = F,
+                  collapsible = F, width = 3,
+                  uiOutput("picker_stat_selector_clust")
+              ),
+              box(title = span(icon("angle-double-up"), " Set parameters for comparison of \"since first\" trajectories data"),
+                  solidHeader = F,
+                  collapsible = F, width = 4,
+                  uiOutput("selector_cases_since_first_n_clust"),
+                  uiOutput("selector_deaths_since_first_n_clust")
+              ),
+              box(title = span(icon("sliders-h"), " Select parameters for analysis/ clustering"),
+                  solidHeader = F,
+                  collapsible = F, width = 4,
+                  uiOutput("selector_top_n_countries_clust"),
+                  uiOutput("selector_n_clusters_dtw")
+                  )
+            ),
+            fluidRow(
+              box(title = span(icon("chart-line"), " Clustered countries' trajectories based on selected statistics and parameters (see above)"),
+                  solidHeader = F,
+                  footer = "DTW distance measure and hierarchical clustering with Ward criterion are used.
+                  Colored dashed lines are DTW barycenters",
+                  collapsible = TRUE, width = 8,
+                  plotOutput("plot_clusters_trajectories", height = "70vh") %>% withSpinner(color = "#5bc0de")
+              ),
+              box(title = span(icon("crosshairs"), " Focus plot for detailed analysis of countries in the selected cluster"),
+                  solidHeader = F,
+                  footer = "Interactive plot - zoom etc.",
+                  collapsible = TRUE, width = 4,
+                  uiOutput("picker_cluster_focus"),
+                  plotlyOutput("plotly_focus_cluster") %>% withSpinner(color = "#5bc0de")
+                  )
+            ),
+            fluidRow(
+              box(title = span(icon("tree"), " Dendogram of clustered countries' trajectories based on similarities of selected statistic"),
+                  footer = "DTW distance measure and hierarchical clustering with Ward criterion are used.",
+                  solidHeader = F,
+                  collapsible = F, width = 7,
+                  # uiOutput("dropdown_clustering_crit"),
+                  plotOutput("plot_clusters_trajectories_dendogram", height = "75vh") %>% withSpinner(color = "#5bc0de")
+                  ),
+              box(title = span(icon("chart-area"), " 2D MDS Scatter plot of clustered countries' trajectories for selected statistic"),
+                  footer = "MDS - Multidimensional scaling - parametric.",
+                  solidHeader = F,
+                  collapsible = F, width = 5,
+                  plotOutput("plot_scatter_mds_trajectories", height = "72vh") %>% withSpinner(color = "#5bc0de")
+              )
+            )
+    ),
     tabItem(tabName = "analysisTab",
             # fluidRow(
             #   box(title = span(icon("balance-scale"), " Select statistics to compare countries"),

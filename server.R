@@ -13,6 +13,7 @@ function(input, output, session) {
   
   # clustering
   source("01_scripts/clustering.R")
+  source("01_scripts/clustering_trajectories.R")
  
   # menu -----
   output$Side_dash <- renderMenu({
@@ -28,6 +29,12 @@ function(input, output, session) {
       menuItem("Compare countries",
                icon = icon("chart-bar"),
                tabName = "compareTab",
+               startExpanded = F,
+               selected = F
+               ),
+      menuItem("Cluster trajectories",
+               icon = icon("chart-line"),
+               tabName = "trajectoryTab",
                startExpanded = F,
                selected = F
                ),
@@ -52,7 +59,7 @@ function(input, output, session) {
     
     query1 <- paste(names(query), query, sep = "=", collapse = ", ")
     
-    print(query1)
+    # print(query1)
     
     if (query1 == "tab=compareTab") {
       
@@ -65,6 +72,10 @@ function(input, output, session) {
     } else if (query1 == "tab=analysisTab") {
       
       updateTabItems(session, inputId = "sideBar_Menu", selected = "analysisTab")
+      
+    } else if (query1 == "tab=trajectoryTab") {
+      
+      updateTabItems(session, inputId = "sideBar_Menu", selected = "trajectoryTab")
       
     }
     
@@ -886,10 +897,7 @@ function(input, output, session) {
                       value.var = input$stats_selector)
     
     dygraph(data_res,
-            main = paste(paste(input$stats_selector, collapse = ","),
-                         " in ",
-                         paste(input$countries_selector, collapse = ","),
-                         collapse = " ")) %>%
+            main = input$stats_selector) %>%
       dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 20],
                                      data_country()[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
@@ -905,7 +913,7 @@ function(input, output, session) {
     
   })
   
-  # 
+  # Since first trajectory graph parameters -----
   
   output$selector_cases_since_first_n <- renderUI({
     
@@ -932,12 +940,14 @@ function(input, output, session) {
   })
   
   # stats by first 100th case or first 10th death by country -----
+  # Cases
   data_country_stat_by_first_cases <- reactive({
     
     shiny::req(input$countries_selector, input$stats_selector, input$cases_since_first_n)
     
     data_res <- copy(data_corona_all_new_stats())
     
+    # Cases greater than threshold
     data_res_cases <- copy(data_res[,
                                     .SD[DateRep >= .SD[Cases_cumsum >= input$cases_since_first_n,
                                                        min(DateRep,
@@ -948,9 +958,11 @@ function(input, output, session) {
              Country,
              DateRep)
     
+    # Create days column
     data_res_cases[, (paste0("Days_since_first_", input$cases_since_first_n, "_case")) := 1:.N,
                    by = .(Country)]
     
+    # subset data based on selected parameters (Countries etc.)
     data_res_cases <- copy(data_res_cases[.(input$countries_selector),
                                           on = .(Country),
                                           .SD,
@@ -963,12 +975,14 @@ function(input, output, session) {
 
   })
   
+  # Deaths
   data_country_stat_by_first_deaths <- reactive({
     
     shiny::req(input$countries_selector, input$stats_selector, input$deaths_since_first_n)
     
     data_res <- copy(data_corona_all_new_stats())
     
+    # Deaths greater than threshold
     data_res_deaths <- copy(data_res[,
                                      .SD[DateRep >= .SD[Deaths_cumsum >= input$deaths_since_first_n,
                                                         min(DateRep)]],
@@ -978,9 +992,11 @@ function(input, output, session) {
              Country,
              DateRep)
     
+    # Create days column
     data_res_deaths[, (paste0("Days_since_first_", input$deaths_since_first_n, "_death")) := 1:.N,
                     by = .(Country)]
     
+    # subset data based on selected parameters (Countries etc.)
     data_res_deaths <- copy(data_res_deaths[.(input$countries_selector),
                                             on = .(Country),
                                             .SD,
@@ -997,7 +1013,7 @@ function(input, output, session) {
   output$dygraph_countries_stats_since_first <- renderDygraph({
     
     shiny::req(input$countries_selector, input$stats_selector,
-               input$deaths_since_first_n, input$deaths_since_first_n)
+               input$cases_since_first_n, input$deaths_since_first_n)
 
     if (grepl(pattern = "case", x = input$stats_selector) |
         grepl(pattern = "Case", x = input$stats_selector) |
@@ -1020,10 +1036,7 @@ function(input, output, session) {
     }
     
     dygraph(data_res,
-            main = paste(paste(input$stats_selector, collapse = ","),
-                         " in ",
-                         paste(input$countries_selector, collapse = ","),
-                         collapse = " ")) %>%
+            main = paste(input$stats_selector)) %>%
       dyRangeSelector(fillColor = "#5bc0de", strokeColor = "#222d32") %>% # fillColor = "#5bc0de",
       dyAxis("x", label = colnames(data_res)[1]) %>%
       dyOptions(
@@ -1128,7 +1141,7 @@ function(input, output, session) {
     
     shiny::req(input$sort_column)
     
-    data_res <- copy(data_countries_lastday_all_stats())
+    data_res <- copy(data_countries_lastday_all_stats()[Population > 1e6])
     
     numericInput(inputId = "top_n_countries_multi",
                  label = paste0("Select number of top N countries from ", input$sort_column, ":"),
@@ -1143,7 +1156,7 @@ function(input, output, session) {
   # number of clusters
   output$selector_n_clusters_multi <- renderUI({
     
-    data_res <- copy(data_countries_lastday_all_stats())
+    data_res <- copy(data_countries_lastday_all_stats()[Population > 1e6])
     
     numericInput(inputId = "n_clusters_multi",
                  label = "Select number of clusters:",
@@ -1169,7 +1182,7 @@ function(input, output, session) {
                                           input$multiple_stats_clust)
                               ])
     
-    data_res_subset <- copy(na.omit(data_res)[1:input$top_n_countries_multi])
+    data_res_subset <- copy(na.omit(data_res[1:input$top_n_countries_multi]))
     
     if (sum(grepl(pattern = "Slovakia", x = data_res_subset$Country)) == 0) {
       
@@ -1476,5 +1489,523 @@ function(input, output, session) {
       backgroundColor = styleEqual(data_res[, Cluster], clust_res$clusters_colors$Color)
     )
   })
+  
+  ### Clustering countries' trajectories with DTW distance ------
 
+  # data with statistics
+  data_corona_all_time_series <- reactive({
+    
+    data_res <- copy(data_corona())
+    
+    data_res <- copy(data_res[Population > 8e5])
+    
+    data_res[, ('New cases per 1 million population') := ceiling((Cases / Population) * 1e6)]
+    data_res[, ('New deaths per 1 million population') := ceiling((Deaths / Population) * 1e6)]
+    data_res[, ('New recovered cases per 1 million population') := ceiling((Recovered / Population) * 1e6)]
+    
+    data_res[, ('Death rate (%)') := round((Deaths_cumsum / Cases_cumsum) * 100, 2)]
+    
+    data_res[, ('Total active cases per 1 million population') := ceiling((Active_cases_cumsum / Population) * 1e6)]
+    data_res[, ('Total deaths per 1 million population') := ceiling((Deaths_cumsum / Population) * 1e6)]
+    data_res[, ('Total cases per 1 million population') := ceiling((Cases_cumsum / Population) * 1e6)]
+    data_res[, ('Total recovered cases per 1 million population') := ceiling((Recovered_cumsum / Population) * 1e6)]
+    
+    data_res[, Population := NULL]
+    data_res[, lat := NULL]
+    data_res[, lon := NULL]
+    
+    data_res
+    
+  })
+  
+  
+  # Select statistic for clustering
+  output$picker_stat_selector_clust <- renderUI({
+    
+    data_res <- copy(data_corona_all_time_series())
+    
+    shinyWidgets::pickerInput(
+      inputId = "stat_selector_clust",
+      label = NULL, 
+      choices = colnames(data_res)[-c(1:2)],
+      selected = 'Total active cases per 1 million population',
+      multiple = F,
+      options = list(
+        # `actions-box` = TRUE,
+        style = "btn-info",
+        `live-search` = TRUE,
+        size = 8),
+      )
+    
+  })
+  
+  # Since first trajectory clustering parameters -----
+  output$selector_cases_since_first_n_clust <- renderUI({
+    
+    numericInput(inputId = "cases_since_first_n_clust",
+                 label = "Select number of since first Nth case:",
+                 value = 100,
+                 min = 1,
+                 max = 1e6,
+                 step = 2
+                )
+    
+  })
+  
+  output$selector_deaths_since_first_n_clust <- renderUI({
+    
+    numericInput(inputId = "deaths_since_first_n_clust",
+                 label = "Select number of since first Nth death:",
+                 value = 20,
+                 min = 1,
+                 max = 1e6,
+                 step = 2
+                )
+    
+  })
+  
+  # select top N countries from selected stat for clustering ----
+  output$selector_top_n_countries_clust <- renderUI({
+    
+    shiny::req(input$stat_selector_clust)
+    
+    data_res <- copy(data_corona_all_time_series())
+    
+    numericInput(inputId = "top_n_countries_clust",
+                 label = paste0("Select number of top N countries from ", input$stat_selector_clust, ":"),
+                 value = 56,
+                 min = 1,
+                 max = data_res[, uniqueN(Country)],
+                 step = 2
+                 )
+    
+  })
+  
+  # number of clusters
+  output$selector_n_clusters_dtw <- renderUI({
+    
+    # data_res <- copy(data_countries_lastday_all_stats()[Population > 1e6])
+    
+    numericInput(inputId = "n_clusters_dtw",
+                 label = "Select number of clusters:",
+                 value = 10,
+                 min = 2,
+                 max = 40,
+                 step = 1
+                )
+    
+  })
+  
+  # stats by first 100th case or first 10th death by country -----
+  # Cases
+  data_country_stat_by_first_cases_clust <- reactive({
+    
+    shiny::req(input$stat_selector_clust, input$top_n_countries_clust, input$cases_since_first_n_clust)
+    
+    data_res <- copy(data_corona_all_time_series())
+    
+    # Cases greater than threshold
+    data_res_cases <- copy(data_res[,
+                                    .SD[DateRep >= .SD[Cases_cumsum >= input$cases_since_first_n_clust,
+                                                       min(DateRep,
+                                                           na.rm = T)]],
+                                    by = .(Country)])
+    
+    setorder(data_res_cases,
+             Country,
+             DateRep)
+    
+    # Create days column
+    data_res_cases[, (paste0("Days_since_first_",
+                             input$cases_since_first_n_clust, "_case")) := 1:.N,
+                   by = .(Country)]
+    
+    # print(data_res_cases)
+    
+    # top N countries selection
+    data_res_order <- copy(data_res_cases[,
+                                          .SD[DateRep == max(DateRep),
+                                              get(input$stat_selector_clust)],
+                                          by = .(Country)
+                                          ])
+    
+    setnames(data_res_order, "V1", input$stat_selector_clust)
+    
+    # print(data_res_order)
+    
+    setorderv(data_res_order, input$stat_selector_clust, -1)
+    
+    # subset data based on selected parameters (Countries etc.)
+    data_res_cases_sub <- copy(data_res_cases[.(data_res_order[1:input$top_n_countries_clust][!is.na(Country), Country]),
+                                          on = .(Country),
+                                          .SD,
+                                          .SDcols = c("Country",
+                                                      paste0("Days_since_first_", input$cases_since_first_n_clust, "_case"),
+                                                      input$stat_selector_clust)
+                                          ])
+    
+    if (sum(grepl(pattern = "Slovakia", x = data_res_cases_sub[, unique(Country)])) == 0) {
+      
+      data_res_cases_sub <- rbindlist(list(data_res_cases_sub,
+                                           data_res_cases[.("Slovakia"),
+                                                          on = .(Country),
+                                                          .SD,
+                                                          .SDcols = c("Country",
+                                                                      paste0("Days_since_first_", input$cases_since_first_n_clust, "_case"),
+                                                                      input$stat_selector_clust)
+                                                          ])
+                                      )
+      
+    }
+    
+    # Make same length time series from countries data
+    data_res_trajectories <- dcast(data_res_cases_sub,
+                                   get(paste0("Days_since_first_", input$cases_since_first_n_clust, "_case")) ~ Country,
+                                   value.var = input$stat_selector_clust)
+    
+    setnames(data_res_trajectories,
+             colnames(data_res_trajectories)[1],
+             paste0("Days_since_first_", input$cases_since_first_n_clust, "_case"))
+    
+    data_res_trajectories
+    
+  })
+  
+  # Deaths
+  data_country_stat_by_first_deaths_clust <- reactive({
+    
+    shiny::req(input$stat_selector_clust, input$top_n_countries_clust, input$deaths_since_first_n_clust)
+    
+    data_res <- copy(data_corona_all_time_series())
+    
+    # Deaths greater than threshold
+    data_res_deaths <- copy(data_res[,
+                                     .SD[DateRep >= .SD[Deaths_cumsum >= input$deaths_since_first_n_clust,
+                                                        min(DateRep)]],
+                                     by = .(Country)])
+    
+    setorder(data_res_deaths,
+             Country,
+             DateRep)
+    
+    # Create days column
+    data_res_deaths[, (paste0("Days_since_first_", input$deaths_since_first_n_clust, "_death")) := 1:.N,
+                    by = .(Country)]
+    
+    # top N countries selection
+    data_res_order <- copy(data_res_deaths[,
+                                           .SD[DateRep == max(DateRep),
+                                               get(input$stat_selector_clust)],
+                                           by = .(Country)
+                                           ])
+    
+    setnames(data_res_order, "V1", input$stat_selector_clust)
+    
+    setorderv(data_res_order, input$stat_selector_clust, -1)
+    
+    # subset data based on selected parameters (Countries etc.)
+    data_res_deaths_sub <- copy(data_res_deaths[.(data_res_order[1:input$top_n_countries_clust][!is.na(Country), Country]),
+                                            on = .(Country),
+                                            .SD,
+                                            .SDcols = c("Country",
+                                                        paste0("Days_since_first_", input$deaths_since_first_n_clust, "_death"),
+                                                        input$stat_selector_clust)
+                                            ])
+    
+    if (sum(grepl(pattern = "Slovakia", x = data_res_deaths_sub[, unique(Country)])) == 0) {
+      
+      data_res_deaths_sub <- rbindlist(list(data_res_deaths_sub,
+                                           data_res_deaths[.("Slovakia"),
+                                                          on = .(Country),
+                                                          .SD,
+                                                          .SDcols = c("Country",
+                                                                      paste0("Days_since_first_", input$deaths_since_first_n_clust, "_death"),
+                                                                      input$stat_selector_clust)
+                                                          ])
+      )
+      
+    }
+    
+    # Make same length time series from countries data
+    data_res_trajectories <- dcast(data_res_deaths_sub,
+                                   get(paste0("Days_since_first_", input$deaths_since_first_n_clust, "_death")) ~ Country,
+                                   value.var = input$stat_selector_clust)
+    
+    setnames(data_res_trajectories,
+             colnames(data_res_trajectories)[1],
+             paste0("Days_since_first_", input$deaths_since_first_n_clust, "_death")
+             )
+    
+    data_res_trajectories
+    
+  })
+  
+  # Prepare trajectories' data for clustering ----
+  data_for_clustering_trajectories <- reactive({
+    
+    shiny::req(input$stat_selector_clust)
+    
+    if (grepl(pattern = "case", x = input$stat_selector_clust) |
+        grepl(pattern = "Case", x = input$stat_selector_clust) |
+        grepl(pattern = "Recove", x = input$stat_selector_clust)) {
+      
+      data_res <- copy(data_country_stat_by_first_cases_clust())
+      
+      
+    } else if (grepl(pattern = "eath", x = input$stat_selector_clust)) {
+      
+      data_res <- copy(data_country_stat_by_first_deaths_clust())
+      
+    }
+    
+    # save stats of dt
+    n_col <- ncol(data_res)
+    n_row <- nrow(data_res)
+    
+    n_row_na <- rowSums(data_res[, lapply(.SD, is.na)])
+    n_col_na <- colSums(data_res[, lapply(.SD, is.na)])
+    
+    # remove all NA rows and cols
+    if (length(which(n_row_na %in% n_col)) != 0) {
+      
+      data_res <- copy(data_res[-which(n_row_na == n_col)])
+      
+    }
+    
+    if (length(which(n_col_na %in% n_row)) != 0) {
+      
+      data_res <- copy(data_res[, -which(n_col_na %in% n_row), with = FALSE])
+      
+    }
+    
+    data_res
+    
+  })
+  
+  # Clustering trajectories ----
+  clustering_result_trajectories <- reactive({
+    
+    shiny::req(input$n_clusters_dtw)
+    
+    data_res <- copy(data_for_clustering_trajectories())
+    
+    clust_res <- cluster_trajectories(data_res, input$n_clusters_dtw)
+    
+    clust_res
+    
+  })
+  
+  data_plot_clusters_trajectories <- reactive({
+    
+    data_res <- copy(data_for_clustering_trajectories())
+    
+    clust_res <- clustering_result_trajectories()
+    
+    # prepare time series
+    data_clust_id <- data.table(Cluster = clust_res@cluster,
+                                Country = names(clust_res@cluster))
+    
+    data_plot <- melt(data_res,
+                      id.vars = colnames(data_res)[1],
+                      variable.name = "Country",
+                      variable.factor = FALSE,
+                      value.name = input$stat_selector_clust,
+                      value.factor = F
+                      )
+    
+    data_plot[data_clust_id,
+              on = .(Country),
+              Cluster := i.Cluster]
+    
+    # prepare centroids
+    centers <- as.data.table(reshape2::melt(clust_res@centroids))
+    setnames(centers, "L1", "Cluster")
+    centers[, (colnames(data_res)[1]) := 1:.N,
+            by = .(Cluster)]
+    setnames(centers, "value", input$stat_selector_clust)
+    centers[, Country := as.character(Cluster)]
+    
+    # Set colors for clusters
+    data_clust_colors <- data.table(Cluster = 1:max(clust_res@cluster),
+                                    # Color = RColorBrewer::brewer.pal(k, name = "Set2")
+                                    Color = colorspace::rainbow_hcl(max(clust_res@cluster), c = 90, l = 50)
+                                    )
+    
+    list(data = data_plot, centers = centers, colors = data_clust_colors)
+    
+  })
+  
+  # Plot of clusters members -----
+  output$plot_clusters_trajectories <- renderPlot({
+    
+    data_clust_res <- data_plot_clusters_trajectories()
+    
+    theme_my <- theme(panel.border = element_rect(fill = NA,
+                                                  colour = "grey10"),
+                      panel.background = element_blank(),
+                      panel.grid.minor = element_line(colour = "grey85"),
+                      panel.grid.major = element_line(colour = "grey85"),
+                      panel.grid.major.x = element_line(colour = "grey85"),
+                      axis.text = element_text(size = 13, face = "bold"),
+                      axis.title = element_text(size = 14, face = "bold"),
+                      plot.title = element_text(size = 16, face = "bold"),
+                      strip.text = element_text(size = 16, face = "bold"),
+                      strip.background = element_rect(colour = "black"),
+                      legend.text = element_text(size = 15),
+                      legend.title = element_text(size = 16, face = "bold"),
+                      legend.background = element_rect(fill = "white"),
+                      legend.key = element_rect(fill = "white"),
+                      legend.position="bottom")
+    
+    # plot the results
+    ggplot(data_clust_res$data,
+           aes(get(colnames(data_clust_res$data)[1]),
+               get(input$stat_selector_clust),
+               group = Country)) +
+      facet_wrap(~Cluster,
+                 ncol = ceiling(data_clust_res$data[, sqrt(uniqueN(Cluster))]),
+                 scales = "free") +
+      geom_line(color = "grey10", alpha = 0.75, size = 0.6) +
+      geom_line(data = data_clust_res$centers,
+                aes(get(colnames(data_clust_res$data)[1]),
+                    get(input$stat_selector_clust),
+                    color = as.factor(Cluster)),
+                # color = "firebrick1",
+                alpha = 0.95, size = 1.4, linetype = "longdash") +
+      scale_color_manual(values = data_clust_res$colors$Color) +
+      labs(x = colnames(data_clust_res$data)[1],
+           y = input$stat_selector_clust) +
+      guides(color = FALSE) +
+      theme_my
+    
+    # plot(clust_res,
+    #      type = "sc",
+    #      linetype = "longdash",
+    #      size = 1.2) + theme_my
+    
+  })
+  
+  # Focus plotly graph of defined cluster -----
+  output$picker_cluster_focus <- renderUI({
+    
+    shiny::req(input$n_clusters_dtw)
+
+    shinyWidgets::pickerInput(inputId = 'cluster_focus',
+                              label = 'Choose cluster for visualisation:',
+                              choices = c(1:input$n_clusters_dtw),
+                              selected = 1,
+                              options = list(`style` = "btn-primary",
+                                             `live-search` = TRUE,
+                                              size = 5)
+                              )
+  })
+  
+  output$plotly_focus_cluster <- renderPlotly({
+    
+    shiny::req(input$cluster_focus)
+    
+    data_clust_res <- data_plot_clusters_trajectories()
+    
+    k <- input$cluster_focus
+    
+    theme_my <- theme(panel.border = element_rect(fill = NA,
+                                                  colour = "grey10"),
+                      panel.background = element_blank(),
+                      panel.grid.minor = element_line(colour = "grey85"),
+                      panel.grid.major = element_line(colour = "grey85"),
+                      panel.grid.major.x = element_line(colour = "grey85"),
+                      axis.text = element_text(size = 10, face = "bold"),
+                      axis.title = element_text(size = 11, face = "bold"),
+                      plot.title = element_text(size = 14, face = "bold")
+                      )
+    
+    gg_clust <- ggplot(data_clust_res$data[Cluster == k],
+                       aes(get(colnames(data_clust_res$data)[1]),
+                           get(input$stat_selector_clust),
+                           group = Country,
+                           text = paste('</br>', colnames(data_clust_res$data)[1], ": ", get(colnames(data_clust_res$data)[1]),
+                                        '</br>', input$stat_selector_clust, ": ", get(input$stat_selector_clust),
+                                        '</br>Country: ', Country, sep = "")
+                           )) +
+      geom_line(data = data_clust_res$centers[Cluster == k],
+                aes(get(colnames(data_clust_res$data)[1]),
+                    get(input$stat_selector_clust)
+                    # text = paste('</br>', colnames(data_clust_res$data)[1], ": ", get(colnames(data_clust_res$data)[1]),
+                    #              '</br>', input$stat_selector_clust, ": ", get(input$stat_selector_clust),
+                    #              '</br>Cluster: ', Country)
+                    ),
+                linetype = "longdash", color = data_clust_res$colors[Cluster == k, Color],
+                alpha = 0.95, size = 1.2) +
+      geom_line(color = "grey10", alpha = 0.75, size = 0.5) +
+      labs(title = paste0("Cluster: ", k),
+           x = colnames(data_clust_res$data)[1],
+           y = input$stat_selector_clust) +
+      theme_my
+    
+    ggplotly(gg_clust, tooltip = "text")
+    
+  })
+  
+  # Dendogram of clustered trajectories ----
+  output$plot_clusters_trajectories_dendogram <- renderPlot({
+    
+    clust_res <- clustering_result_trajectories()
+    
+    dend <- as.dendrogram(clust_res)
+
+    dend <- dend %>%
+      color_branches(k = input$n_clusters_dtw) %>%
+      color_labels(k = input$n_clusters_dtw) %>%
+      set("branches_lwd", 1) %>%
+      # set("labels", dt_order[, Country]) %>%
+      set("labels_cex", 0.9)
+
+    ggd1 <- as.ggdend(dend)
+
+    gg_dendo <- ggplot(ggd1,
+                       horiz = T)
+
+    gg_dendo
+    
+  })
+  
+  output$plot_scatter_mds_trajectories <- renderPlot({
+    
+    clust_res <- clustering_result_trajectories()
+
+    mds_classical <- cmdscale(clust_res@distmat, eig = FALSE, k = 2) # very slow, be aware!
+    # ds_nonmetric <- isoMDS(d, k = 2)$points
+
+    data_plot <- data.table(mds_classical,
+                            Country = row.names(mds_classical),
+                            Cluster = clust_res@cluster
+                            )
+
+    gg_scatter <- ggplot(data_plot, aes(x = get("V1"),
+                                        y = get("V2"),
+                                        label = Country,
+                                        color = as.factor(Cluster)
+                                        )
+                         ) +
+      geom_label_repel(
+        alpha = 0.95,
+        segment.alpha = 0.35,
+        label.r = 0.1,
+        box.padding = 0.25,
+        label.padding = 0.3,
+        label.size = 0.35,
+        max.iter = 2500) +
+      scale_color_manual(values = colorspace::rainbow_hcl(input$n_clusters_dtw,
+                                                          c = 90,
+                                                          l = 50)) +
+      labs(x = NULL,
+           y = NULL,
+           color = NULL) +
+      guides(color = FALSE) +
+      theme_bw()
+
+    gg_scatter
+    
+  })
+  
 }
