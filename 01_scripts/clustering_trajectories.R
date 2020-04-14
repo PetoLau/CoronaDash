@@ -1,3 +1,30 @@
+# Clustering trajectories TS with different lengths using DTW dist. + hierarchical clustering + DTW barycenters ----- 
+cluster_trajectories <- function(data, k) {
+  
+  # transpose data for clustering
+  data_trajectories_trans <- t(data[, .SD,
+                                    .SDcols = colnames(data)[-1]])
+  
+  data_trajectories_trans_list <- lapply(1:nrow(data_trajectories_trans), function(i) na.omit(data_trajectories_trans[i,]))
+  names(data_trajectories_trans_list) <- colnames(data)[-1]
+  
+  # TODO - use some time series representations - PAA, SMA
+  
+  hc_res <- tsclust(data_trajectories_trans_list,
+                    type = "hierarchical",
+                    k = k,
+                    distance = "dtw_basic", # "dtw", "dtw_basic", "dtw2", "sdtw"
+                    centroid = dba, # dba, sdtw_cent
+                    trace = FALSE,
+                    control = hierarchical_control(method = "ward.D2"),
+                    args = tsclust_args(dist = list(norm = "L2")
+                    )
+  )
+  
+  return(hc_res)
+  
+}
+
 # # data read
 # data_all_trajectories <- fread("data.csv")
 # #
@@ -21,31 +48,6 @@
 #   data_all_trajectories <- copy(data_all_trajectories[, -which(n_col_na %in% n_row), with = FALSE])
 # 
 # }
-
-cluster_trajectories <- function(data, k) {
-  
-  # transpose data for clustering
-  data_trajectories_trans <- t(data[, .SD,
-                                    .SDcols = colnames(data)[-1]])
-
-  data_trajectories_trans_list <- lapply(1:nrow(data_trajectories_trans), function(i) na.omit(data_trajectories_trans[i,]))
-  names(data_trajectories_trans_list) <- colnames(data)[-1]
-  
-  hc_res <- tsclust(data_trajectories_trans_list,
-                    type = "hierarchical",
-                    k = k,
-                    distance = "dtw_basic", # "dtw", "dtw_basic", "dtw2", "sdtw"
-                    centroid = dba, # dba, sdtw_cent
-                    trace = FALSE,
-                    control = hierarchical_control(method = "ward.D2"),
-                    args = tsclust_args(dist = list(norm = "L2")
-                                        )
-                    )
-  
-  return(hc_res)
-  
-}
-
 # # transpose data for clustering
 # data_trajectories_trans <- t(data_all_trajectories[, .SD,
 #                                                    .SDcols = colnames(data_all_trajectories)[-1]])
@@ -141,7 +143,6 @@ cluster_trajectories <- function(data, k) {
 # 
 # library(plotly)
 # ggplotly(gg_clust)
-
 # # distmat ot MDS ----
 # hc_res@distmat
 # 
@@ -174,7 +175,6 @@ cluster_trajectories <- function(data, k) {
 #   theme_bw()
 # 
 # gg_scatter
-
 # plot(hc_res)
 # # plot(hc_res, type = "c")
 # # plot(hc_res, type = "series")
@@ -196,7 +196,6 @@ cluster_trajectories <- function(data, k) {
 #                                 Color = colorspace::rainbow_hcl(12, c = 90, l = 50))
 # 
 # lolo <- cutree(hc, k = 12)
-
 # # join
 # data_clust_merge <- data.table(Cluster = lolo,
 #                                Country = names(lolo))
@@ -218,17 +217,13 @@ cluster_trajectories <- function(data, k) {
 # par(mar = c(10,2,1,1))
 # plot(dend)
 # colored_bars(colors = data_clust_merge[, Color], dend = dend)
-
 # always show top countries ot the top of dendogram
-
 # ggd1 <- as.ggdend(dend)
 # 
 # gg_dendo <- ggplot(ggd1,
 #                    horiz = T)
 # 
 # gg_dendo
-
-
 # pc <- tsclust(data_trajectories_trans_list,
 #               type = "partitional",
 #               k = 10L, 

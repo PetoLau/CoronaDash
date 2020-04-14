@@ -310,8 +310,8 @@ function(input, output, session) {
   output$valuebox_num_tests_pop <- renderValueBox({
     
     valueBox(
-      paste0(data_country()[.N,
-                             Tests_1M_Pop]),
+      format(data_country()[.N,
+                             Tests_1M_Pop], nsmall=1, big.mark=","),
              "Number of tests per 1 million population",
              icon = icon("vials"),
              color = "olive"
@@ -1511,6 +1511,8 @@ function(input, output, session) {
     data_res[, ('Total recovered cases per 1 million population') := ceiling((Recovered_cumsum / Population) * 1e6)]
     
     data_res[, Population := NULL]
+    data_res[, TotalTests := NULL]
+    data_res[, Tests_1M_Pop := NULL]
     data_res[, lat := NULL]
     data_res[, lon := NULL]
     
@@ -1795,6 +1797,67 @@ function(input, output, session) {
     
   })
   
+  # Select country for info in which cluster is in it -----
+  output$picker_country_clust <- renderUI({
+    
+    clust_res <- copy(clustering_result_trajectories())
+    
+    data_clust_id <- data.table(Cluster = clust_res@cluster,
+                                Country = names(clust_res@cluster))
+    
+    shinyWidgets::pickerInput(
+      inputId = "country_clust",
+      label = "In which cluster is your prefered country? Pick one:",
+      choices = data_clust_id[, Country],
+      selected = 'Slovakia',
+      multiple = F,
+      options = list(
+        # `actions-box` = TRUE,
+        style = "btn-info",
+        `live-search` = TRUE,
+        size = 8),
+    )
+    
+  })
+  
+  # Info text
+  output$text_inwhich_cluster_country <- renderUI({
+    
+      clust_res <- copy(clustering_result_trajectories())
+
+      data_clust_id <- data.table(Cluster = clust_res@cluster,
+                                  Country = names(clust_res@cluster))
+
+      shiny::req(input$country_clust)
+    
+      tags$html(tags$h3(tags$b(paste0("Cluster n.: ", data_clust_id[.(input$country_clust),
+                                                                 on = .(Country),
+                                                                 Cluster]))
+                       )
+               )
+    
+  })
+  
+  # output$infobox_inwhich_cluster_country <- renderInfoBox({
+  #   
+  #   clust_res <- copy(clustering_result_trajectories())
+  #   
+  #   data_clust_id <- data.table(Cluster = clust_res@cluster,
+  #                               Country = names(clust_res@cluster))
+  #   
+  #   shiny::req(input$country_clust)
+  #   
+  #   infoBox(
+  #     "Cluster: ", paste0(data_clust_id[.(input$country_clust),
+  #                                       on = .(Country),
+  #                                       Cluster]),
+  #     icon = icon("list"),
+  #     color = "light-blue"
+  #     )
+  #   
+  # })
+  
+  # Data for plotting clustered trajectories
   data_plot_clusters_trajectories <- reactive({
     
     data_res <- copy(data_for_clustering_trajectories())
@@ -1887,13 +1950,20 @@ function(input, output, session) {
   
   # Focus plotly graph of defined cluster -----
   output$picker_cluster_focus <- renderUI({
+
+    clust_res <- copy(clustering_result_trajectories())
     
-    shiny::req(input$n_clusters_dtw)
+    data_clust_id <- data.table(Cluster = clust_res@cluster,
+                                Country = names(clust_res@cluster))
+    
+    shiny::req(input$n_clusters_dtw, input$country_clust)
 
     shinyWidgets::pickerInput(inputId = 'cluster_focus',
                               label = 'Choose cluster for visualisation:',
                               choices = c(1:input$n_clusters_dtw),
-                              selected = 1,
+                              selected = data_clust_id[.(input$country_clust),
+                                                       on = .(Country),
+                                                       Cluster],
                               options = list(`style` = "btn-primary",
                                              `live-search` = TRUE,
                                               size = 5)

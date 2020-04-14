@@ -73,8 +73,8 @@ body <- dashboardBody(
               box(title = span(icon("magic"), " Select your preferences - country and forecasting horizon"),
                   solidHeader = F,
                   collapsible = TRUE, width = NULL,
-                  uiOutput("selector_country") %>% withSpinner(color = "#5bc0de"),
-                  uiOutput("slider_n_days_forec") %>% withSpinner(color = "#5bc0de"),
+                  uiOutput("selector_country"),
+                  uiOutput("slider_n_days_forec"),
                   htmlOutput("text_date_update")
               ),
               box(
@@ -197,7 +197,10 @@ body <- dashboardBody(
               box(title = span(icon("table"), " Select one statistic for clustering trajectories"),
                   solidHeader = F,
                   collapsible = F, width = 3,
-                  uiOutput("picker_stat_selector_clust")
+                  uiOutput("picker_stat_selector_clust"),
+                  uiOutput("picker_country_clust"),
+                  # infoBoxOutput("infobox_inwhich_cluster_country") %>% withSpinner(color = "#5bc0de", size = 0.1)
+                  htmlOutput("text_inwhich_cluster_country")
               ),
               box(title = span(icon("angle-double-up"), " Set parameters for comparison of \"since first\" trajectories data"),
                   solidHeader = F,
@@ -216,13 +219,13 @@ body <- dashboardBody(
               box(title = span(icon("chart-line"), " Clustered countries' trajectories based on selected statistics and parameters (see above)"),
                   solidHeader = F,
                   footer = "DTW distance measure and hierarchical clustering with Ward criterion are used.
-                  Colored dashed lines are DTW barycenters",
+                  Colored dashed lines are DTW barycenters.",
                   collapsible = TRUE, width = 8,
                   plotOutput("plot_clusters_trajectories", height = "70vh") %>% withSpinner(color = "#5bc0de")
               ),
               box(title = span(icon("crosshairs"), " Focus plot for detailed analysis of countries in the selected cluster"),
                   solidHeader = F,
-                  footer = "Interactive plot - zoom etc.",
+                  footer = "Interactive plot - zoom in/out etc.",
                   collapsible = TRUE, width = 4,
                   uiOutput("picker_cluster_focus"),
                   plotlyOutput("plotly_focus_cluster") %>% withSpinner(color = "#5bc0de")
