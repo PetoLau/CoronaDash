@@ -800,7 +800,8 @@ function(input, output, session) {
     data_res[, ('New deaths per 1 million population') := ceiling((Deaths / Population) * 1e6)]
     data_res[, ('New recovered cases per 1 million population') := ceiling((Recovered / Population) * 1e6)]
 
-    
+    data_res[, TotalTests := NULL]
+    data_res[, Tests_1M_Pop := NULL]
     data_res[, Population := NULL]
     data_res[, lat := NULL]
     data_res[, lon := NULL]
