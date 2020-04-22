@@ -1211,13 +1211,13 @@ function(input, output, session) {
                                 selected = "ward.D2",
                                 multiple = F,
                                 options = list(
-                                  style = "btn-info",
+                                  style = "btn-success",
                                   size = 3
                                   )
                                 ),
       
       style = "unite", icon = icon("gear"),
-      status = "primary", width = "300px",
+      status = "success", width = "300px",
       animate = shinyWidgets::animateOptions(
         enter = animations$fading_entrances$fadeInLeftBig,
         exit = animations$fading_exits$fadeOutRightBig
@@ -1743,10 +1743,36 @@ function(input, output, session) {
     
   })
   
+  # SMA order input ----
+  output$selector_sma_order <- renderUI({
+    
+    numericInput(inputId = "sma_order",
+                 label = "Select order of Simple Moving Average (SMA):",
+                 value = 3,
+                 min = 1,
+                 max = 7,
+                 step = 1,
+                 width = "50%"
+                 )
+    
+  })
+  
+  # Normalization switch
+  output$switch_normalization <- renderUI({
+    
+    materialSwitch(
+      inputId = "normalization",
+      label = "Normalize each country before clustering by z-score?", 
+      value = FALSE,
+      status = "info"
+      )
+    
+  })
+  
   # Prepare trajectories' data for clustering ----
   data_for_clustering_trajectories <- reactive({
     
-    shiny::req(input$stat_selector_clust)
+    shiny::req(input$stat_selector_clust, input$sma_order)
     
     if (grepl(pattern = "case", x = input$stat_selector_clust) |
         grepl(pattern = "Case", x = input$stat_selector_clust) |
@@ -1780,7 +1806,15 @@ function(input, output, session) {
       data_res <- copy(data_res[, -which(n_col_na %in% n_row), with = FALSE])
       
     }
-    
+
+    # Compute SMA for every Country
+    data_res[,
+             (colnames(data_res)[-1]) := lapply(.SD, function(i) c(rep(NA, input$sma_order - 1),
+                                                                   repr_sma(i, input$sma_order)
+                                                                   )
+                                                ),
+             .SDcols = colnames(data_res)[-1]]
+
     data_res
     
   })
@@ -1792,7 +1826,7 @@ function(input, output, session) {
     
     data_res <- copy(data_for_clustering_trajectories())
     
-    clust_res <- cluster_trajectories(data_res, input$n_clusters_dtw)
+    clust_res <- cluster_trajectories(data_res, input$n_clusters_dtw, input$normalization)
     
     clust_res
     
@@ -1874,20 +1908,28 @@ function(input, output, session) {
                       variable.name = "Country",
                       variable.factor = FALSE,
                       value.name = input$stat_selector_clust,
-                      value.factor = F
+                      value.factor = FALSE
                       )
     
     data_plot[data_clust_id,
               on = .(Country),
               Cluster := i.Cluster]
     
-    # prepare centroids
-    centers <- as.data.table(reshape2::melt(clust_res@centroids))
-    setnames(centers, "L1", "Cluster")
-    centers[, (colnames(data_res)[1]) := 1:.N,
-            by = .(Cluster)]
-    setnames(centers, "value", input$stat_selector_clust)
-    centers[, Country := as.character(Cluster)]
+    if (!input$normalization) {
+
+      centroids <- lapply(1:length(clust_res@centroids), function(i) c(rep(NA, input$sma_order - 1),
+                                                                       clust_res@centroids[[i]])
+                          )
+      
+      # prepare centroids
+      centers <- as.data.table(reshape2::melt(centroids))
+      setnames(centers, "L1", "Cluster")
+      centers[, (colnames(data_res)[1]) := 1:.N,
+              by = .(Cluster)]
+      setnames(centers, "value", input$stat_selector_clust)
+      centers[, Country := as.character(Cluster)]
+      
+    }
     
     # Set colors for clusters
     data_clust_colors <- data.table(Cluster = 1:max(clust_res@cluster),
@@ -1895,7 +1937,10 @@ function(input, output, session) {
                                     Color = colorspace::rainbow_hcl(max(clust_res@cluster), c = 90, l = 50)
                                     )
     
-    list(data = data_plot, centers = centers, colors = data_clust_colors)
+    list(data = data_plot,
+         centers = if (!input$normalization) { centers } else { NULL },
+         colors = data_clust_colors
+         )
     
   })
   
@@ -1921,26 +1966,54 @@ function(input, output, session) {
                       legend.key = element_rect(fill = "white"),
                       legend.position="bottom")
     
-    # plot the results
-    ggplot(data_clust_res$data,
-           aes(get(colnames(data_clust_res$data)[1]),
-               get(input$stat_selector_clust),
-               group = Country)) +
-      facet_wrap(~Cluster,
-                 ncol = ceiling(data_clust_res$data[, sqrt(uniqueN(Cluster))]),
-                 scales = "free") +
-      geom_line(color = "grey10", alpha = 0.75, size = 0.6) +
-      geom_line(data = data_clust_res$centers,
-                aes(get(colnames(data_clust_res$data)[1]),
-                    get(input$stat_selector_clust),
-                    color = as.factor(Cluster)),
-                # color = "firebrick1",
-                alpha = 0.95, size = 1.4, linetype = "longdash") +
-      scale_color_manual(values = data_clust_res$colors$Color) +
-      labs(x = colnames(data_clust_res$data)[1],
-           y = input$stat_selector_clust) +
-      guides(color = FALSE) +
-      theme_my
+    if (!input$normalization) {
+      
+      # plot the results
+      ggplot(data_clust_res$data,
+             aes(get(colnames(data_clust_res$data)[1]),
+                 get(input$stat_selector_clust),
+                 group = Country)) +
+        facet_wrap(~Cluster,
+                   ncol = ceiling(data_clust_res$data[, sqrt(uniqueN(Cluster))]),
+                   scales = "free") +
+        geom_line(color = "grey10", alpha = 0.75, size = 0.6) +
+        geom_line(data = data_clust_res$centers,
+                  aes(get(colnames(data_clust_res$data)[1]),
+                      get(input$stat_selector_clust),
+                      color = as.factor(Cluster)),
+                  # color = "firebrick1",
+                  alpha = 0.95, size = 1.4, linetype = "longdash") +
+        scale_color_manual(values = data_clust_res$colors$Color) +
+        labs(x = colnames(data_clust_res$data)[1],
+             y = input$stat_selector_clust) +
+        guides(color = FALSE) +
+        theme_my
+      
+    } else {
+      
+      # plot the results
+      ggplot(data_clust_res$data,
+             aes(get(colnames(data_clust_res$data)[1]),
+                 get(input$stat_selector_clust),
+                 group = Country)) +
+        facet_wrap(~Cluster,
+                   ncol = ceiling(data_clust_res$data[, sqrt(uniqueN(Cluster))]),
+                   scales = "free") +
+        geom_line(color = "grey10", alpha = 0.75, size = 0.6) +
+        # geom_line(data = data_clust_res$centers,
+        #           aes(get(colnames(data_clust_res$data)[1]),
+        #               get(input$stat_selector_clust),
+        #               color = as.factor(Cluster)),
+        #           # color = "firebrick1",
+        #           alpha = 0.95, size = 1.4, linetype = "longdash") +
+        scale_color_manual(values = data_clust_res$colors$Color) +
+        labs(x = colnames(data_clust_res$data)[1],
+             y = input$stat_selector_clust) +
+        guides(color = FALSE) +
+        theme_my
+      
+      
+    }
     
     # plot(clust_res,
     #      type = "sc",
@@ -1990,28 +2063,45 @@ function(input, output, session) {
                       plot.title = element_text(size = 14, face = "bold")
                       )
     
-    gg_clust <- ggplot(data_clust_res$data[Cluster == k],
-                       aes(get(colnames(data_clust_res$data)[1]),
-                           get(input$stat_selector_clust),
-                           group = Country,
-                           text = paste('</br>', colnames(data_clust_res$data)[1], ": ", get(colnames(data_clust_res$data)[1]),
-                                        '</br>', input$stat_selector_clust, ": ", get(input$stat_selector_clust),
-                                        '</br>Country: ', Country, sep = "")
-                           )) +
-      geom_line(data = data_clust_res$centers[Cluster == k],
-                aes(get(colnames(data_clust_res$data)[1]),
-                    get(input$stat_selector_clust)
-                    # text = paste('</br>', colnames(data_clust_res$data)[1], ": ", get(colnames(data_clust_res$data)[1]),
-                    #              '</br>', input$stat_selector_clust, ": ", get(input$stat_selector_clust),
-                    #              '</br>Cluster: ', Country)
-                    ),
-                linetype = "longdash", color = data_clust_res$colors[Cluster == k, Color],
-                alpha = 0.95, size = 1.2) +
-      geom_line(color = "grey10", alpha = 0.75, size = 0.5) +
-      labs(title = paste0("Cluster: ", k),
-           x = colnames(data_clust_res$data)[1],
-           y = input$stat_selector_clust) +
-      theme_my
+    if (!input$normalization) {
+      
+      gg_clust <- ggplot(data_clust_res$data[Cluster == k],
+                         aes(get(colnames(data_clust_res$data)[1]),
+                             get(input$stat_selector_clust),
+                             group = Country,
+                             text = paste('</br>', colnames(data_clust_res$data)[1], ": ", get(colnames(data_clust_res$data)[1]),
+                                          '</br>', input$stat_selector_clust, ": ", get(input$stat_selector_clust),
+                                          '</br>Country: ', Country, sep = "")
+                         )) +
+        geom_line(data = data_clust_res$centers[Cluster == k],
+                  aes(get(colnames(data_clust_res$data)[1]),
+                      get(input$stat_selector_clust)
+                  ),
+                  linetype = "longdash", color = data_clust_res$colors[Cluster == k, Color],
+                  alpha = 0.95, size = 1.2) +
+        geom_line(color = "grey10", alpha = 0.75, size = 0.5) +
+        labs(title = paste0("Cluster: ", k),
+             x = colnames(data_clust_res$data)[1],
+             y = input$stat_selector_clust) +
+        theme_my
+      
+    } else {
+      
+      gg_clust <- ggplot(data_clust_res$data[Cluster == k],
+                         aes(get(colnames(data_clust_res$data)[1]),
+                             get(input$stat_selector_clust),
+                             group = Country,
+                             text = paste('</br>', colnames(data_clust_res$data)[1], ": ", get(colnames(data_clust_res$data)[1]),
+                                          '</br>', input$stat_selector_clust, ": ", get(input$stat_selector_clust),
+                                          '</br>Country: ', Country, sep = "")
+                         )) +
+        geom_line(color = "grey10", alpha = 0.75, size = 0.5) +
+        labs(title = paste0("Cluster: ", k),
+             x = colnames(data_clust_res$data)[1],
+             y = input$stat_selector_clust) +
+        theme_my
+      
+    }
     
     ggplotly(gg_clust, tooltip = "text")
     

@@ -1,5 +1,5 @@
 # Clustering trajectories TS with different lengths using DTW dist. + hierarchical clustering + DTW barycenters ----- 
-cluster_trajectories <- function(data, k) {
+cluster_trajectories <- function(data, k, normalize = FALSE) {
   
   # transpose data for clustering
   data_trajectories_trans <- t(data[, .SD,
@@ -8,8 +8,22 @@ cluster_trajectories <- function(data, k) {
   data_trajectories_trans_list <- lapply(1:nrow(data_trajectories_trans), function(i) na.omit(data_trajectories_trans[i,]))
   names(data_trajectories_trans_list) <- colnames(data)[-1]
   
-  # TODO - use some time series representations - PAA, SMA
+  # TODO - use some time series representations - SMA
+  # data_trajectories_trans_list_repr <- lapply(names(data_trajectories_trans_list),
+  #                                             function(i) repr_sma(data_trajectories_trans_list[[i]],
+  #                                                                  order = order))
+  # names(data_trajectories_trans_list_repr) <- names(data_trajectories_trans_list)
   
+  # normalization
+  if (normalize) {
+    
+    data_trajectories_trans_list <- lapply(names(data_trajectories_trans_list),
+                                                function(i) norm_z(data_trajectories_trans_list[[i]])
+                                                 )
+    names(data_trajectories_trans_list) <- colnames(data)[-1]
+    
+  }
+
   hc_res <- tsclust(data_trajectories_trans_list,
                     type = "hierarchical",
                     k = k,
@@ -17,9 +31,8 @@ cluster_trajectories <- function(data, k) {
                     centroid = dba, # dba, sdtw_cent
                     trace = FALSE,
                     control = hierarchical_control(method = "ward.D2"),
-                    args = tsclust_args(dist = list(norm = "L2")
+                    args = tsclust_args(dist = list(norm = "L2"))
                     )
-  )
   
   return(hc_res)
   
