@@ -84,26 +84,31 @@ function(input, output, session) {
   # informative text for this app -----
   output$informative_text <- renderUI({
     
-    tags$html(tags$p("This application is only for informative purposes,
+    tags$html(tags$p("This application is only for informative and analytics purposes,
                      how the COVID-19 virus can spread over time for a defined country and period of days (confirmed cases).
                      There isn't motivation to replace more sophisticated epidemiology models like SIR."),
               tags$p("Data are coming from",
                      tags$a(href = 'https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series',
                             target="_blank", "Johns Hopkins CSSE GitHub repository"),
-                     "and",
+                     ",",
                      tags$a(href = 'https://github.com/ulklc/covid19-timeseries',
-                            target="_blank", "GitHub repository by ulklc.")),
+                            target="_blank", "GitHub repository by ulklc"),
+                     ", and",
+                     tags$a(href = 'https://github.com/ChrisMichaelPerezSantiago/covid19',
+                            target="_blank", "tests data are coming from COVID19 API.")),
               tags$p("The forecasting model is the ETS (Exponential smoothing) implemented in a smooth R package,
-                      so only historical data of target time series are used (extrapolation).
-                      For total cumulative confirmed cases, the multiplicative model is used.
-                      For total cumulative death cases of the World, the fully multiplicative model is used
-                     (it is the possibility of using a damped trend in both situations)."),
+                      so only historical data of target time series are used (extrapolation) -
+                      the multiplicative model with the possibility of a damped trend is used."
+                     ),
               tags$p(
-                tags$a("You can compare multiple countries' trajectories for various statistics in the Compare countries tab,",
+                tags$a("You can compare multiple countries' trajectories for various statistics in the", tags$b("Compare countries"), "tab,",
                        onclick = "openTab('compareTab')", href="#"),
-                tags$a("and clustering of countries viewed on scatter plots and dendograms in the Countries analysis tab.",
+                tags$a("and cluster them using time series data mining methods in the", tags$b("Cluster trajectories"), "tab.",
+                       onclick = "openTab('trajectoryTab')", href="#"),
+                tags$a("You can also cluster countries based on multiple last updated statistics and
+                       view it on scatter plots and dendograms in the", tags$b("Cluster countries"), "tab.",
                        onclick = "openTab('analysisTab')", href="#"),
-                tags$a("You can also check the aggregated World cases + forecasts in the COVID-19 World agg. tab.",
+                tags$a("You can also check the aggregated World cases + forecasts in the", tags$b("COVID-19 World agg."), "tab.",
                             onclick = "openTab('worldTab')", href="#")
                        ),
               tags$p("The forecasting model applied on the Covid-19 use case was inspired by",
@@ -829,6 +834,7 @@ function(input, output, session) {
   #   
   # })
   
+  # Statistic picker
   output$picker_stats_selector <- renderUI({
     
     data_res <- copy(data_corona_all_new_stats())
@@ -844,6 +850,18 @@ function(input, output, session) {
         style = "btn-danger",
         `live-search` = TRUE,
         size = 8),
+    )
+    
+  })
+  
+  # Log-scale switch
+  output$switch_log_scale_compareTab <- renderUI({
+    
+    materialSwitch(
+      inputId = "log_scale_compareTab",
+      label = "Use log scale on Y axis?",
+      value = FALSE,
+      status = "danger"
     )
     
   })
@@ -906,6 +924,7 @@ function(input, output, session) {
                 fillGraph = TRUE, fillAlpha = 0.4,
                 drawPoints = TRUE, pointSize = 3,
                 pointShape = "circle",
+                logscale = if(input$log_scale_compareTab) {TRUE} else {NULL},
                 colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Spectral")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5,
                                              pointSize = 4,
@@ -1009,7 +1028,7 @@ function(input, output, session) {
     data_res_deaths
     
   })
-  
+
   # Show stats since first for the selected countries ----
   output$dygraph_countries_stats_since_first <- renderDygraph({
     
@@ -1046,6 +1065,7 @@ function(input, output, session) {
                 # fillGraph = TRUE, fillAlpha = 0.4,
                 drawPoints = TRUE, pointSize = 3,
                 pointShape = "circle",
+                logscale = if(input$log_scale_compareTab) {TRUE} else {NULL},
                 colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Spectral")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5,
                                              pointSize = 4)
@@ -1769,6 +1789,18 @@ function(input, output, session) {
     
   })
   
+  # Log-scale switch
+  output$switch_log_scale <- renderUI({
+    
+    materialSwitch(
+      inputId = "log_scale",
+      label = "Use log scale on Y axis?",
+      value = FALSE,
+      status = "info"
+      )
+    
+  })
+  
   # Prepare trajectories' data for clustering ----
   data_for_clustering_trajectories <- reactive({
     
@@ -1911,6 +1943,8 @@ function(input, output, session) {
                       value.factor = FALSE
                       )
     
+    data_plot <- copy(data_plot[.(data_clust_id$Country), on = .(Country)])
+    
     data_plot[data_clust_id,
               on = .(Country),
               Cluster := i.Cluster]
@@ -1969,7 +2003,7 @@ function(input, output, session) {
     if (!input$normalization) {
       
       # plot the results
-      ggplot(data_clust_res$data,
+      gg <- ggplot(data_clust_res$data,
              aes(get(colnames(data_clust_res$data)[1]),
                  get(input$stat_selector_clust),
                  group = Country)) +
@@ -1989,10 +2023,12 @@ function(input, output, session) {
         guides(color = FALSE) +
         theme_my
       
+      if (input$log_scale) gg <- gg + scale_y_continuous(trans = 'log10')
+      
     } else {
       
       # plot the results
-      ggplot(data_clust_res$data,
+      gg <- ggplot(data_clust_res$data,
              aes(get(colnames(data_clust_res$data)[1]),
                  get(input$stat_selector_clust),
                  group = Country)) +
@@ -2000,25 +2036,18 @@ function(input, output, session) {
                    ncol = ceiling(data_clust_res$data[, sqrt(uniqueN(Cluster))]),
                    scales = "free") +
         geom_line(color = "grey10", alpha = 0.75, size = 0.6) +
-        # geom_line(data = data_clust_res$centers,
-        #           aes(get(colnames(data_clust_res$data)[1]),
-        #               get(input$stat_selector_clust),
-        #               color = as.factor(Cluster)),
-        #           # color = "firebrick1",
-        #           alpha = 0.95, size = 1.4, linetype = "longdash") +
         scale_color_manual(values = data_clust_res$colors$Color) +
         labs(x = colnames(data_clust_res$data)[1],
              y = input$stat_selector_clust) +
         guides(color = FALSE) +
         theme_my
       
+      if (input$log_scale) gg <- gg + scale_y_continuous(trans = 'log10')
+      
       
     }
     
-    # plot(clust_res,
-    #      type = "sc",
-    #      linetype = "longdash",
-    #      size = 1.2) + theme_my
+    gg
     
   })
   
@@ -2085,6 +2114,8 @@ function(input, output, session) {
              y = input$stat_selector_clust) +
         theme_my
       
+      if (input$log_scale) gg_clust <- gg_clust + scale_y_continuous(trans = 'log10')
+      
     } else {
       
       gg_clust <- ggplot(data_clust_res$data[Cluster == k],
@@ -2100,6 +2131,8 @@ function(input, output, session) {
              x = colnames(data_clust_res$data)[1],
              y = input$stat_selector_clust) +
         theme_my
+      
+      if (input$log_scale) gg_clust <- gg_clust + scale_y_continuous(trans = 'log10')
       
     }
     

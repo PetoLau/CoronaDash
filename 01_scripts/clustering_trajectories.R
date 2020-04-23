@@ -14,16 +14,35 @@ cluster_trajectories <- function(data, k, normalize = FALSE) {
   #                                                                  order = order))
   # names(data_trajectories_trans_list_repr) <- names(data_trajectories_trans_list)
   
+  n_list <- sapply(1:length(data_trajectories_trans_list), function(i) length(data_trajectories_trans_list[[i]]))
+  names(n_list) <- names(data_trajectories_trans_list)
+  
+  # save(n_list, file = "n_list.RData")
+  # load("n_list.RData")
+  
+  if (length(which(n_list %in% 0:1)) != 0) {
+    
+    data_trajectories_trans_list <- data_trajectories_trans_list[-which(n_list %in% 0:1)]
+    
+  }
+  
+  list_names <- names(data_trajectories_trans_list)
+
   # normalization
   if (normalize) {
     
     data_trajectories_trans_list <- lapply(names(data_trajectories_trans_list),
                                                 function(i) norm_z(data_trajectories_trans_list[[i]])
                                                  )
-    names(data_trajectories_trans_list) <- colnames(data)[-1]
+    names(data_trajectories_trans_list) <- list_names
     
   }
 
+  # save(data_trajectories_trans_list, file = "data_list.RData")
+  # load("data_list.RData")
+  
+  # na.omit(data_trajectories_trans_list[["Latvia"]])
+  
   hc_res <- tsclust(data_trajectories_trans_list,
                     type = "hierarchical",
                     k = k,

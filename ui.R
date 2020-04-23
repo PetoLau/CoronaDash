@@ -168,7 +168,8 @@ body <- dashboardBody(
               box(title = span(icon("table"), " Select one statistic for comparison"),
                   solidHeader = F, status = "danger",
                   collapsible = F, width = 3,
-                  uiOutput("picker_stats_selector")
+                  uiOutput("picker_stats_selector"),
+                  uiOutput("switch_log_scale_compareTab")
                   ),
               box(title = span(icon("angle-double-up"), " Set parameters for comparison of \"since first\" trajectories graph"),
                   solidHeader = F, status = "info",
@@ -221,8 +222,10 @@ body <- dashboardBody(
                   footer = "DTW distance measure and hierarchical clustering with Ward criterion are used.
                   Colored dashed lines are DTW barycenters.",
                   collapsible = TRUE, width = 8,
-                  uiOutput("selector_sma_order"),
-                  uiOutput("switch_normalization"),
+                  fluidRow(column(width = 5, uiOutput("selector_sma_order")),
+                           column(width = 4, uiOutput("switch_normalization")),
+                           column(width = 3, uiOutput("switch_log_scale"))
+                           ),
                   plotOutput("plot_clusters_trajectories", height = "70vh") %>% withSpinner(color = "#5bc0de")
               ),
               box(title = span(icon("crosshairs"), " Focus plot for detailed analysis of countries in the selected cluster"),
