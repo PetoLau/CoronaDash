@@ -2099,12 +2099,12 @@ function(input, output, session) {
                              get(input$stat_selector_clust),
                              group = Country,
                              text = paste('</br>', colnames(data_clust_res$data)[1], ": ", get(colnames(data_clust_res$data)[1]),
-                                          '</br>', input$stat_selector_clust, ": ", get(input$stat_selector_clust),
+                                          '</br>', input$stat_selector_clust, ": ", round(get(input$stat_selector_clust), 2),
                                           '</br>Country: ', Country, sep = "")
                          )) +
         geom_line(data = data_clust_res$centers[Cluster == k],
                   aes(get(colnames(data_clust_res$data)[1]),
-                      get(input$stat_selector_clust)
+                      round(get(input$stat_selector_clust), 2)
                   ),
                   linetype = "longdash", color = data_clust_res$colors[Cluster == k, Color],
                   alpha = 0.95, size = 1.2) +
@@ -2123,7 +2123,7 @@ function(input, output, session) {
                              get(input$stat_selector_clust),
                              group = Country,
                              text = paste('</br>', colnames(data_clust_res$data)[1], ": ", get(colnames(data_clust_res$data)[1]),
-                                          '</br>', input$stat_selector_clust, ": ", get(input$stat_selector_clust),
+                                          '</br>', input$stat_selector_clust, ": ", round(get(input$stat_selector_clust), 2),
                                           '</br>Country: ', Country, sep = "")
                          )) +
         geom_line(color = "grey10", alpha = 0.75, size = 0.5) +
