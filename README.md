@@ -19,6 +19,7 @@ Application provides also various **data mining/ visualization techniques** for 
 
  * **trajectories** of cases/ deaths spread,
  * 2D/ **multidimensional clustering** of countries' data/ statistics - with dendogram and table of clusters averages,
+ * **hierarchical clustering of countries' trajectories** based on DTW distance and preprocessing by SMA (+ normalization), for fast comparison of large number of countries' COVID-19 magnitudes and trends,
  * **aggregated views** for the whole World,
  * every statistic is also computed per 1 million population for more **interpretable and comparable analysis**.
 
