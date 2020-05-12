@@ -6,10 +6,10 @@
 
 
 <p float="left">
-  <img src="www/readme_screens/screen_forec_tab.png" width="230" />
-  <img src="www/readme_screens/screen_trajectories_tab.png" width="200" /> 
-  <img src="www/readme_screens/screen_clust_tab.png" width="230" />
-  <img src="www/readme_screens/screen_clust_trajectory_tab.png" width="200" />
+  <img src="www/readme_screens/screen_forec_tab.png" width="220" />
+  <img src="www/readme_screens/screen_trajectories_tab.png" width="210" /> 
+  <img src="www/readme_screens/screen_clust_tab.png" width="220" />
+  <img src="www/readme_screens/screen_clust_trajectory_tab.png" width="220" />
 </p>
 
 This `shiny`/`shinydashboard` application is for informative purposes, how the **COVID-19** virus can spread over time for a defined country (or whole world) and period of days (cases and deaths).
