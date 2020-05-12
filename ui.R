@@ -195,6 +195,13 @@ body <- dashboardBody(
             ),
     tabItem(tabName = "trajectoryTab",
             fluidRow(
+              box(title = span(icon("info-circle"), " Information about analysis capabilities in this dashboards tab"),
+                  solidHeader = T, status = "info",
+                  collapsible = F, width = 12,
+                  htmlOutput("info_clustering_trajectories")
+                  )
+              ),
+            fluidRow(
               box(title = span(icon("table"), " Select one statistic for clustering trajectories"),
                   solidHeader = F, status = "info",
                   collapsible = F, width = 4,
@@ -237,7 +244,7 @@ body <- dashboardBody(
                   )
             ),
             fluidRow(
-              box(title = span(icon("tree"), " Dendogram of clustered countries' trajectories based on similarities of selected statistic"),
+              box(title = span(icon("tree"), " Dendrogram of clustered countries' trajectories based on similarities of selected statistic"),
                   footer = "DTW distance measure and hierarchical clustering with Ward criterion are used.",
                   solidHeader = F, status = "success",
                   collapsible = F, width = 7,
@@ -253,34 +260,13 @@ body <- dashboardBody(
             )
     ),
     tabItem(tabName = "analysisTab",
-            # fluidRow(
-            #   box(title = span(icon("balance-scale"), " Select statistics to compare countries"),
-            #       solidHeader = F,
-            #       collapsible = F, width = 5,
-            #       uiOutput("picker_stat_scatterplot_x"),
-            #       uiOutput("picker_stat_scatterplot_y")
-            #       ),
-            #   box(title = span(icon("sliders-h"), " Select parameters for analysis/ clustering"),
-            #       solidHeader = F,
-            #       collapsible = F, width = 5,
-            #       uiOutput("selector_top_n_countries_x"),
-            #       uiOutput("selector_n_clusters"),
-            #       )
-            #   ),
-            #   fluidRow(
-            #     box(title = span(icon("chart-area"), " Scatter plot of countries for selected statistics"),
-            #         footer = "Zoom in for cleaner view.",
-            #         solidHeader = F,
-            #         collapsible = F, width = 6,
-            #         plotOutput("plotly_scatterplot_2d_country_stat") %>% withSpinner(color = "#5bc0de")
-            #     ),
-            #     box(title = span(icon("tree"), " Dendogram of clustered countries based on similarities of selected statistics"),
-            #         footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
-            #         solidHeader = F,
-            #         collapsible = F, width = 6,
-            #         plotOutput("clust_res_2d", height = "75vh") %>% withSpinner(color = "#5bc0de")
-            #     )
-            # ),
+            fluidRow(
+              box(title = span(icon("info-circle"), " Information about analysis capabilities in this dashboards tab"),
+                  solidHeader = T, status = "info",
+                  collapsible = F, width = 12,
+                  htmlOutput("info_clustering_stats")
+              )
+            ),
             fluidRow(
               box(title = span(icon("balance-scale"), " Select multiple statistics for clustering countries based on these data"),
                   solidHeader = F, status = "info",
@@ -303,7 +289,7 @@ body <- dashboardBody(
                   collapsible = F, width = 6,
                   plotOutput("plot_scatterplot_mds_country_stats", height = "72vh") %>% withSpinner(color = "#5bc0de")
               ),
-              box(title = span(icon("tree"), " Dendogram of clustered countries based on similarities of selected statistics"),
+              box(title = span(icon("tree"), " Dendrogram of clustered countries based on similarities of selected statistics"),
                   footer = "Euclidean distance measure and hierarchical clustering with Ward criterion are used.",
                   solidHeader = F, status = "success",
                   collapsible = F, width = 6,

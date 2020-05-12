@@ -106,7 +106,7 @@ function(input, output, session) {
                 tags$a("and cluster them using time series data mining methods in the", tags$b("Cluster trajectories"), "tab.",
                        onclick = "openTab('trajectoryTab')", href="#"),
                 tags$a("You can also cluster countries based on multiple last updated statistics and
-                       view it on scatter plots and dendograms in the", tags$b("Cluster countries"), "tab.",
+                       view it on scatter plots and dendrograms in the", tags$b("Cluster countries"), "tab.",
                        onclick = "openTab('analysisTab')", href="#"),
                 tags$a("You can also check the aggregated World cases + forecasts in the", tags$b("COVID-19 World agg."), "tab.",
                             onclick = "openTab('worldTab')", href="#")
@@ -1074,7 +1074,28 @@ function(input, output, session) {
     
   })
   
-  ### Scatter plot + dendogram - clustering comparison of countries -----
+  ### Scatter plot + dendrogram - clustering comparison of countries -----
+  
+  # info
+  output$info_clustering_stats <- renderUI({
+    
+    tags$html(
+      tags$p("In this tab, you can", tags$b("cluster countries' last updated statistics"), "by hierarchical agglomerative clustering method
+             with Euclidean distance measure."),
+      tags$p(tags$b("You can vary multiple settings as:"),
+             "statistics of COVID-19 spread,
+             data sorting statistic,
+             number of clustered countries,
+             number of clusters,
+             and usage of a clustering criterion."),
+      tags$p("For cluster analysis results there are 3 plots:",
+             tags$b("1. MDS 2D plot"), "for better imagination of countries' similarities in the lower dimensions.",
+             tags$b("2. Dendrogram of hierarchical clustering"), "results where we can see detailed similarities (connections) between countries",
+             tags$b("3. Table of clusters averages"), " (centroids) for detailed analysis of countries classified in one cluster."
+             )
+      )
+    
+  })
   
   # Compute last available stats for countries
   data_countries_lastday_all_stats <- reactive({
@@ -1091,11 +1112,11 @@ function(input, output, session) {
                                                       'New cases per 1 million population' = ceiling((Cases / Population) * 1e6),
                                                       'New deaths per 1 million population' = ceiling((Deaths / Population) * 1e6),
                                                       'New recovered cases per 1 million population' = ceiling((Recovered / Population) * 1e6),
-                                                      'Death rate (%)' = round((Deaths_cumsum / Cases_cumsum) * 100, 2),
-                                                      'Positive tests rate (%)' = round((Cases_cumsum / TotalTests) * 100, 2),
+                                                      'Total cases per 1 million population' = ceiling((Cases_cumsum / Population) * 1e6),
                                                       'Total active cases per 1 million population' = ceiling((Active_cases_cumsum / Population) * 1e6),
                                                       'Total deaths per 1 million population' = ceiling((Deaths_cumsum / Population) * 1e6),
-                                                      'Total cases per 1 million population' = ceiling((Cases_cumsum / Population) * 1e6),
+                                                      'Death rate (%)' = round((Deaths_cumsum / Cases_cumsum) * 100, 2),
+                                                      'Positive tests rate (%)' = round((Cases_cumsum / TotalTests) * 100, 2),
                                                       'Total recovered cases per 1 million population' = ceiling((Recovered_cumsum / Population) * 1e6),
                                                       'Total tests per 1 million population' = Tests_1M_Pop,
                                                       Population
@@ -1118,9 +1139,9 @@ function(input, output, session) {
       label = NULL, 
       choices = colnames(data_res)[-1],
       selected = c('Total active cases per 1 million population',
-                   'New cases per 1 million population',
-                   'New deaths per 1 million population',
+                   'Total cases per 1 million population',
                    'Positive tests rate (%)',
+                   'Total tests per 1 million population',
                    'Total deaths per 1 million population'
                    ),
       multiple = T,
@@ -1301,7 +1322,8 @@ function(input, output, session) {
                                          y = get(input$multiple_stats_clust[2]),
                                          label = Country,
                                          color = as.factor(Cluster))) +
-        geom_label_repel(alpha = 0.95,
+        geom_label_repel(size = 4.5,
+                         alpha = 0.75,
                          segment.alpha = 0.35,
                          label.r = 0.1,
                          box.padding = 0.25,
@@ -1337,8 +1359,8 @@ function(input, output, session) {
                                           color = as.factor(Cluster)
                                           )
                            ) +
-        geom_label_repel(
-                        alpha = 0.95,
+        geom_label_repel(size = 4.5,
+                        alpha = 0.75,
                         segment.alpha = 0.35,
                         label.r = 0.1,
                         box.padding = 0.25,
@@ -1385,7 +1407,7 @@ function(input, output, session) {
     
   })
   
-  # Plot clustering dendogram ----
+  # Plot clustering dendrogram ----
   
   output$clust_res_multidim <- renderPlot({
     
@@ -1417,7 +1439,7 @@ function(input, output, session) {
       set("labels", dt_order[, Country]) %>%
       set("labels_cex", 0.9)
     
-    # always show top countries ot the top of dendogram
+    # always show top countries ot the top of dendrogram
     where_is_first <- which(clust_res$order == 1)
     
     if (where_is_first >= length(clust_res$order)/2) {
@@ -1513,6 +1535,29 @@ function(input, output, session) {
   
   ### Clustering countries' trajectories with DTW distance ------
 
+  # info
+  output$info_clustering_trajectories <- renderUI({
+    
+    tags$html(
+      tags$p("In this tab, you can", tags$b("cluster countries trajectories' time series"), "by hierarchical agglomerative clustering method
+             with DTW (Dynamic Time Warping) distance measure."),
+      tags$p(tags$b("You can vary multiple settings as:"),
+             "statistic of COVID-19 spread,
+             trajectories starting points,
+             number of clustered countries,
+             number of clusters,
+             the order of trajectory smoothing with SMA,
+             normalization of time series,
+             and using a log scale for visualization purposes."),
+      tags$p("For cluster analysis results there are 4 plots:",
+             tags$b("1. Grid of clusters"), "for viewing similar time series trajectories (trends)",
+             tags$b("2. Focus plot of the selected cluster"), "for interactive countries analysis",
+             tags$b("3. Dendrogram of hierarchical clustering"), "results where we can see detailed similarities (connections) between countries",
+             tags$b("4. MDS 2D plot"), "for better imagination of countries' similarities in the lower dimensions.")
+    )
+    
+  })
+  
   # data with statistics
   data_corona_all_time_series <- reactive({
     
@@ -1596,7 +1641,7 @@ function(input, output, session) {
     
     numericInput(inputId = "top_n_countries_clust",
                  label = paste0("Select number of top N countries from ", input$stat_selector_clust, ":"),
-                 value = 56,
+                 value = 65,
                  min = 1,
                  max = data_res[, uniqueN(Country)],
                  step = 2
@@ -1611,7 +1656,7 @@ function(input, output, session) {
     
     numericInput(inputId = "n_clusters_dtw",
                  label = "Select number of clusters:",
-                 value = 10,
+                 value = 12,
                  min = 2,
                  max = 40,
                  step = 1
@@ -1783,7 +1828,7 @@ function(input, output, session) {
     materialSwitch(
       inputId = "normalization",
       label = "Normalize each country before clustering by z-score?", 
-      value = FALSE,
+      value = TRUE,
       status = "info"
       )
     
@@ -1795,7 +1840,7 @@ function(input, output, session) {
     materialSwitch(
       inputId = "log_scale",
       label = "Use log scale on Y axis?",
-      value = FALSE,
+      value = TRUE,
       status = "info"
       )
     
@@ -1876,7 +1921,7 @@ function(input, output, session) {
       inputId = "country_clust",
       label = "In which cluster is your prefered country? Pick one:",
       choices = data_clust_id[, Country],
-      selected = 'Slovakia',
+      selected = 'Italy',
       multiple = F,
       options = list(
         # `actions-box` = TRUE,
@@ -1982,6 +2027,12 @@ function(input, output, session) {
   output$plot_clusters_trajectories <- renderPlot({
     
     data_clust_res <- data_plot_clusters_trajectories()
+    
+    # data_label <- copy(data_clust_res$data[!is.na(get(input$stat_selector_clust)),
+    #                                        .SD[get(colnames(data_clust_res$data)[1]) == max(get(colnames(data_clust_res$data)[1]))],
+    #                                        by = .(Country)])
+    # 
+    # print(data_label)
     
     theme_my <- theme(panel.border = element_rect(fill = NA,
                                                   colour = "grey10"),
@@ -2140,7 +2191,7 @@ function(input, output, session) {
     
   })
   
-  # Dendogram of clustered trajectories ----
+  # Dendrogram of clustered trajectories ----
   output$plot_clusters_trajectories_dendogram <- renderPlot({
     
     clust_res <- clustering_result_trajectories()
@@ -2163,11 +2214,12 @@ function(input, output, session) {
     
   })
   
+  # MDS of DTW ----
   output$plot_scatter_mds_trajectories <- renderPlot({
     
     clust_res <- clustering_result_trajectories()
 
-    mds_classical <- cmdscale(clust_res@distmat, eig = FALSE, k = 2) # very slow, be aware!
+    mds_classical <- cmdscale(clust_res@distmat, eig = FALSE, k = 2) # can be very slow, be aware!
     # ds_nonmetric <- isoMDS(d, k = 2)$points
 
     data_plot <- data.table(mds_classical,
@@ -2182,6 +2234,7 @@ function(input, output, session) {
                                         )
                          ) +
       geom_label_repel(
+        size = 5,
         alpha = 0.95,
         segment.alpha = 0.35,
         label.r = 0.1,
