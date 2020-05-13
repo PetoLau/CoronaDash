@@ -1,6 +1,7 @@
 
 # CoronaDash
 
+[![eRum2020::CovidR](https://badgen.net/https/runkit.io/erum2020-covidr/badge/branches/master/laurinec-CoronaDash?cache=300)](https://milano-r.github.io/erum2020-covidr-contest/laurinec-CoronaDash.html)
 
 #### [**Shinydashboard online application is available on this link**](https://petolau.shinyapps.io/coronadash/)
 
