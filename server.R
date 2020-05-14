@@ -342,7 +342,7 @@ function(input, output, session) {
     dygraph(data_country()[, .(DateRep, 'Cases cumulative' = Cases_cumsum, Cases, 'Recovered cumulative' = Recovered_cumsum)],
             main = input$country) %>%
       # dyAxis("y", label = "Cases") %>%
-      dyRangeSelector(dateWindow = c(data_country()[, max(DateRep) - 10], data_country()[, max(DateRep) + 1]),
+      dyRangeSelector(dateWindow = c(data_country()[, max(DateRep) - 50], data_country()[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
                 fillGraph = TRUE, fillAlpha = 0.4,
@@ -371,7 +371,7 @@ function(input, output, session) {
     dygraph(data_country()[, .(DateRep, 'Deaths cumulative' = Deaths_cumsum, Deaths)],
             main = input$country) %>%
       # dyAxis("y", label = "Deaths") %>%
-      dyRangeSelector(dateWindow = c(data_country()[, max(DateRep) - 10], data_country()[, max(DateRep) + 1]),
+      dyRangeSelector(dateWindow = c(data_country()[, max(DateRep) - 50], data_country()[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
                 fillGraph = TRUE, fillAlpha = 0.4,
@@ -437,7 +437,7 @@ function(input, output, session) {
       dySeries('Cases cumulative') %>%
       dySeries(c("Cases_cumsum_lwr", "Cases_cumsum_mean", "Cases_cumsum_upr"),
                label = "Cases cumulative - forecast") %>%
-      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - input$n_days_forec - 7],
+      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - input$n_days_forec - 10],
                                      data_res[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
@@ -606,7 +606,7 @@ function(input, output, session) {
     dygraph(data_world()[, .(DateRep, 'Cases cumulative' = Cases_cumsum, Cases, 'Recovered cumulative' = Recovered_cumsum)],
             main = "World") %>%
       # dyAxis("y", label = "Cases") %>%
-      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 60], data_country()[, max(DateRep) + 1]),
+      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 80], data_country()[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
                 fillGraph = TRUE, fillAlpha = 0.4,
@@ -633,7 +633,7 @@ function(input, output, session) {
     dygraph(data_world()[, .(DateRep, 'Deaths cumulative' = Deaths_cumsum, Deaths)],
             main = "World") %>%
       # dyAxis("y", label = "Deaths") %>%
-      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 60], data_country()[, max(DateRep) + 1]),
+      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 80], data_country()[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
                 fillGraph = TRUE, fillAlpha = 0.4,
@@ -684,7 +684,7 @@ function(input, output, session) {
       dySeries('Cases cumulative') %>%
       dySeries(c("Cases_cumsum_lwr", "Cases_cumsum_mean", "Cases_cumsum_upr"),
                label = "Cases cumulative - forecast") %>%
-      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 10 - 7],
+      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 10 - 10],
                                      data_res[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
@@ -738,7 +738,7 @@ function(input, output, session) {
       dySeries('Deaths cumulative') %>%
       dySeries(c("Deaths_cumsum_lwr", "Deaths_cumsum_mean", "Deaths_cumsum_upr"),
                label = "Deaths cumulative - forecast") %>%
-      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 10 - 7],
+      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 10 - 10],
                                      data_res[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
@@ -917,15 +917,15 @@ function(input, output, session) {
     
     dygraph(data_res,
             main = input$stats_selector) %>%
-      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 20],
+      dyRangeSelector(dateWindow = c(data_res[, max(DateRep) - 70],
                                      data_country()[, max(DateRep) + 1]),
                       fillColor = "#5bc0de", strokeColor = "#222d32") %>%
       dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
-                fillGraph = TRUE, fillAlpha = 0.4,
+                fillGraph = F, fillAlpha = 0.1,
                 drawPoints = TRUE, pointSize = 3,
                 pointShape = "circle",
                 logscale = if(input$log_scale_compareTab) {TRUE} else {NULL},
-                colors = RColorBrewer::brewer.pal(ncol(data_res)-2, "Spectral")) %>%
+                colors = colorspace::rainbow_hcl(ncol(data_res)-2, c = 90, l = 50)) %>% # RColorBrewer::brewer.pal(ncol(data_res)-2, "Spectral")
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5,
                                              pointSize = 4,
                                              fillAlpha = 0.5)) %>%
