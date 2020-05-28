@@ -1672,6 +1672,8 @@ function(input, output, session) {
     
     data_res <- copy(data_corona_all_time_series())
     
+    # fwrite(data_res, "data_covid_time_series_2020-05-24.csv", row.names = F, col.names = T, quote = T)
+    
     # Cases greater than threshold
     data_res_cases <- copy(data_res[,
                                     .SD[DateRep >= .SD[Cases_cumsum >= input$cases_since_first_n_clust,
@@ -1887,7 +1889,7 @@ function(input, output, session) {
     # Compute SMA for every Country
     data_res[,
              (colnames(data_res)[-1]) := lapply(.SD, function(i) c(rep(NA, input$sma_order - 1),
-                                                                   repr_sma(i, input$sma_order)
+                                                                   ceiling(repr_sma(i, input$sma_order))
                                                                    )
                                                 ),
              .SDcols = colnames(data_res)[-1]]
@@ -2087,10 +2089,10 @@ function(input, output, session) {
                    ncol = ceiling(data_clust_res$data[, sqrt(uniqueN(Cluster))]),
                    scales = "free") +
         geom_line(color = "grey10", alpha = 0.75, size = 0.6) +
-        scale_color_manual(values = data_clust_res$colors$Color) +
+        # scale_color_manual(values = data_clust_res$colors$Color) +
         labs(x = colnames(data_clust_res$data)[1],
              y = input$stat_selector_clust) +
-        guides(color = FALSE) +
+        # guides(color = FALSE) +
         theme_my
       
       if (input$log_scale) gg <- gg + scale_y_continuous(trans = 'log10')
