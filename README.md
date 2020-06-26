@@ -24,7 +24,7 @@ Application provides also various **data mining/ visualization techniques** for 
  * **aggregated views** for the whole World,
  * every statistic is also computed per 1 million population for more **interpretable and comparable analysis**.
 
-Data are coming from [Johns Hopkins CSSE GitHub repository](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series) and [GitHub repository by ulklc](https://github.com/ulklc/covid19-timeseries). Tests data are coming from [COVID19 API](https://github.com/ChrisMichaelPerezSantiago/covid19).
+Data are coming from [Johns Hopkins CSSE GitHub repository](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series). Tests data are coming from [COVID19 API](https://github.com/ChrisMichaelPerezSantiago/covid19).
 
 The forecasting model is the ETS (**Exponential smoothing**) implemented in a [`smooth` R package](https://cran.r-project.org/package=smooth), so only historical data of target time series are used.
 For total cumulative confirmed cases, the multiplicative model is used.
