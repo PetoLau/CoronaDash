@@ -94,8 +94,8 @@ function(input, output, session) {
                      # tags$a(href = 'https://github.com/ulklc/covid19-timeseries',
                      #        target="_blank", "GitHub repository by ulklc"),
                      ", and",
-                     tags$a(href = 'https://github.com/ChrisMichaelPerezSantiago/covid19',
-                            target="_blank", "tests data are coming from COVID19 API.")),
+                     tags$a(href = 'https://covid19datahub.io/index.html',
+                            target="_blank", "tests data are coming from COVID19 Data Hub.")),
               tags$p("The forecasting model is the ETS (Exponential smoothing) implemented in a smooth R package,
                       so only historical data of target time series are used (extrapolation) -
                       the multiplicative model with the possibility of a damped trend is used."

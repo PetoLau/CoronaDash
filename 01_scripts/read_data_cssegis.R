@@ -1,7 +1,8 @@
 # Read data from JHU source CSSE ARCGIS -----
 # https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series
 
-source("01_scripts/read_data_worldometer.R")
+# source("01_scripts/read_data_worldometer.R")
+source("01_scripts/read_data_covid19datahub.R")
 
 read_data_cases <- function() {
   
@@ -164,7 +165,7 @@ join_all_corona_data <- function() {
   data_all <- copy(read_data_cases())
   data_deaths <- copy(read_data_deaths())
   data_recov <- copy(read_data_recovered())
-  data_tests <- copy(read_data_worldometer())
+  data_tests <- copy(read_data_covid19datahub())
   
   # print(data_all)
   # print(data_recov)
