@@ -129,12 +129,22 @@ body <- dashboardBody(
                   )
               ),
             fluidRow(
-              box(title = span(icon("chart-area"), " Cases for the selected country"),
-                  solidHeader = F, status = "primary",
-                  collapsible = TRUE, width = 6,
-                  htmlOutput("cases_text"),
-                  dygraphOutput("dygraph_country_cases") %>% withSpinner(color = "#5bc0de")
+              tabBox(
+                title = span(icon("chart-area"), " Cases for the selected country"),
+                id = "tabset1",
+                tabPanel("Cumulative cases",
+                         htmlOutput("cases_text"),
+                         dygraphOutput("dygraph_country_cases") %>% withSpinner(color = "#5bc0de")),
+                tabPanel("New cases only",
+                         # htmlOutput("cases_text"),
+                         dygraphOutput("dygraph_country_new_cases") %>% withSpinner(color = "#5bc0de"))
               ),
+              # box(title = span(icon("chart-area"), " Cases for the selected country"),
+              #     solidHeader = F, status = "primary",
+              #     collapsible = TRUE, width = 6,
+              #     htmlOutput("cases_text"),
+              #     dygraphOutput("dygraph_country_cases") %>% withSpinner(color = "#5bc0de")
+              # ),
               box(title = span(icon("chart-line"), " Forecasted total cumulative cases for the selected country +
                                90% upper prediction interval"),
                   solidHeader = F, status = "primary",
@@ -144,12 +154,24 @@ body <- dashboardBody(
               )
             ),
             fluidRow(
-              box(title = span(icon("chart-area"), " Deaths for the selected country"),
-                  solidHeader = F, status = "primary",
-                  collapsible = TRUE, width = 6,
-                  htmlOutput("death_text"),
-                  dygraphOutput("dygraph_country_deaths") %>% withSpinner(color = "#5bc0de")
+              tabBox(
+                title = span(icon("chart-area"), " Deaths for the selected country"),
+                id = "tabset2",
+                tabPanel("Cumulative deaths",
+                         htmlOutput("death_text"),
+                         dygraphOutput("dygraph_country_deaths") %>% withSpinner(color = "#5bc0de")
+                         ),
+                tabPanel("New deaths only",
+                         # htmlOutput("death_text"),
+                         dygraphOutput("dygraph_country_new_deaths") %>% withSpinner(color = "#5bc0de")
+                         )
               )
+              # box(title = span(icon("chart-area"), " Deaths for the selected country"),
+              #     solidHeader = F, status = "primary",
+              #     collapsible = TRUE, width = 6,
+              #     htmlOutput("death_text"),
+              #     dygraphOutput("dygraph_country_deaths") %>% withSpinner(color = "#5bc0de")
+              # )
               # box(title = span(icon("chart-line"), " Forecasted cumulative deaths for the selected country +
               #                  90% upper prediction interval"),
               #     solidHeader = F,
@@ -321,12 +343,24 @@ body <- dashboardBody(
               )
             ),
             fluidRow(
-              box(title = span(icon("chart-area"), " Cases for the World"),
-                  solidHeader = F, status = "primary",
-                  collapsible = TRUE, width = 6,
-                  htmlOutput("cases_text_world"),
-                  dygraphOutput("dygraph_world_cases") %>% withSpinner(color = "#5bc0de")
+              tabBox(
+                title = span(icon("chart-area"), " Cases for the World"),
+                id = "tabset3",
+                tabPanel("Cumulative cases",
+                         htmlOutput("cases_text_world"),
+                         dygraphOutput("dygraph_world_cases") %>% withSpinner(color = "#5bc0de")
+                ),
+                tabPanel("New cases only",
+                         # htmlOutput("cases_text_world"),
+                         dygraphOutput("dygraph_world_new_cases") %>% withSpinner(color = "#5bc0de")
+                )
               ),
+              # box(title = span(icon("chart-area"), " Cases for the World"),
+              #     solidHeader = F, status = "primary",
+              #     collapsible = TRUE, width = 6,
+              #     htmlOutput("cases_text_world"),
+              #     dygraphOutput("dygraph_world_cases") %>% withSpinner(color = "#5bc0de")
+              # ),
               box(title = span(icon("chart-line"), " Forecasted total cumulative cases for the World +
                                90% upper prediction interval"),
                   solidHeader = F, status = "primary",
@@ -335,12 +369,24 @@ body <- dashboardBody(
               )
             ),
             fluidRow(
-              box(title = span(icon("chart-area"), " Deaths for the World"),
-                  solidHeader = F, status = "primary",
-                  collapsible = TRUE, width = 6,
-                  htmlOutput("death_text_world"),
-                  dygraphOutput("dygraph_world_deaths") %>% withSpinner(color = "#5bc0de")
+              tabBox(
+                title = span(icon("chart-area"), " Deaths for the World"),
+                id = "tabset4",
+                tabPanel("Cumulative deaths",
+                         htmlOutput("death_text_world"),
+                         dygraphOutput("dygraph_world_deaths") %>% withSpinner(color = "#5bc0de")
+                ),
+                tabPanel("New deaths only",
+                         # htmlOutput("death_text_world"),
+                         dygraphOutput("dygraph_world_new_deaths") %>% withSpinner(color = "#5bc0de")
+                )
               ),
+              # box(title = span(icon("chart-area"), " Deaths for the World"),
+              #     solidHeader = F, status = "primary",
+              #     collapsible = TRUE, width = 6,
+              #     htmlOutput("death_text_world"),
+              #     dygraphOutput("dygraph_world_deaths") %>% withSpinner(color = "#5bc0de")
+              # ),
               box(title = span(icon("chart-line"), " Forecasted total cumulative deaths for the World +
                                90% upper prediction interval"),
                   solidHeader = F, status = "primary",

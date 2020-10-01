@@ -354,6 +354,25 @@ function(input, output, session) {
     
   })
   
+  output$dygraph_country_new_cases <- renderDygraph({
+    
+    shiny::req(input$country)
+    
+    dygraph(data_country()[, .(DateRep, Cases)],
+            main = input$country) %>%
+      # dyAxis("y", label = "Cases") %>%
+      dyRangeSelector(dateWindow = c(data_country()[, max(DateRep) - 50], data_country()[, max(DateRep) + 1]),
+                      fillColor = "#5bc0de", strokeColor = "#222d32") %>%
+      dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
+                fillGraph = TRUE, fillAlpha = 0.4,
+                drawPoints = TRUE, pointSize = 3,
+                pointShape = "circle",
+                colors = c("#5bc0de")) %>%
+      dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
+    
+  })
+  
   # informative text for deaths -----
   output$death_text <- renderUI({
     
@@ -364,6 +383,25 @@ function(input, output, session) {
   })
   
   # Show deaths of the selected country ----
+  output$dygraph_country_new_deaths <- renderDygraph({
+    
+    shiny::req(input$country)
+    
+    dygraph(data_country()[, .(DateRep, Deaths)],
+            main = input$country) %>%
+      # dyAxis("y", label = "Deaths") %>%
+      dyRangeSelector(dateWindow = c(data_country()[, max(DateRep) - 50], data_country()[, max(DateRep) + 1]),
+                      fillColor = "#5bc0de", strokeColor = "#222d32") %>%
+      dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
+                fillGraph = TRUE, fillAlpha = 0.4,
+                drawPoints = TRUE, pointSize = 3,
+                pointShape = "circle",
+                colors = c("#5bc0de")) %>%
+      dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
+    
+  })
+  
   output$dygraph_country_deaths <- renderDygraph({
     
     shiny::req(input$country)
@@ -618,6 +656,23 @@ function(input, output, session) {
     
   })
   
+  output$dygraph_world_new_cases <- renderDygraph({
+    
+    dygraph(data_world()[, .(DateRep, Cases)],
+            main = "World") %>%
+      # dyAxis("y", label = "Cases") %>%
+      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 80], data_country()[, max(DateRep) + 1]),
+                      fillColor = "#5bc0de", strokeColor = "#222d32") %>%
+      dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
+                fillGraph = TRUE, fillAlpha = 0.4,
+                drawPoints = TRUE, pointSize = 3,
+                pointShape = "circle",
+                colors = c("#5bc0de")) %>%
+      dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
+    
+  })
+  
   # informative text for deaths - world -----
   output$death_text_world <- renderUI({
     
@@ -640,6 +695,23 @@ function(input, output, session) {
                 drawPoints = TRUE, pointSize = 3,
                 pointShape = "circle",
                 colors = c("#5bc0de", "#228b22")) %>%
+      dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
+      dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
+    
+  })
+  
+  output$dygraph_world_new_deaths <- renderDygraph({
+    
+    dygraph(data_world()[, .(DateRep, Deaths)],
+            main = "World") %>%
+      # dyAxis("y", label = "Deaths") %>%
+      dyRangeSelector(dateWindow = c(data_world()[, max(DateRep) - 80], data_country()[, max(DateRep) + 1]),
+                      fillColor = "#5bc0de", strokeColor = "#222d32") %>%
+      dyOptions(useDataTimezone = TRUE, strokeWidth = 2,
+                fillGraph = TRUE, fillAlpha = 0.4,
+                drawPoints = TRUE, pointSize = 3,
+                pointShape = "circle",
+                colors = c("#5bc0de")) %>%
       dyHighlight(highlightSeriesOpts = list(strokeWidth = 2.5, pointSize = 4)) %>%
       dyLegend(width = 300, show = "auto", hideOnMouseOut = TRUE, labelsSeparateLines = TRUE)
     
